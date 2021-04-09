@@ -3,10 +3,6 @@
 
 import map_generator
 
-import tests
-import src
-import src.heightmap_generation
-
 def main():
     map_generator.run()
 
