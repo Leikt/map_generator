@@ -64,17 +64,3 @@ class Area():
             if iX >= width:
                 iX = 0
                 iY += 1
-
-    # def __iter__(self):
-    #     self._iX = -1  # The first iteration will set _iX to 0
-    #     self._iY = 0
-    #     return self
-
-    # def __next__(self):
-    #     self._iX += 1
-    #     if self._iX >= self._width:
-    #         self._iX = 0
-    #         self._iY += 1
-    #         if self._iY >= self._height:
-    #             raise StopIteration()
-    #     return self._iX, self._iY
