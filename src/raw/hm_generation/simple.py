@@ -42,10 +42,7 @@ def generate(*, width: int, height: int, seed: int, octaves: int, persistence: f
     offsets = [None] * octaves
     for i in range(octaves):
         offsets[i] = (prng.randint(-1000, 1000), prng.randint(-1000, 1000))
-    minValue = -100_000_000_000
-    maxValue = 100_000_000_000
-    width = float(width)
-    height = float(height)
+    scale_clamp = float(min(width, height))
 
     # Generating each value
     for x, y in heightmap.coordinates:
@@ -53,20 +50,21 @@ def generate(*, width: int, height: int, seed: int, octaves: int, persistence: f
         scale = initial_scale
         weight = 1.0
         for i in range(octaves):
-            pX = offsets[i][0] + scale * x / width
-            pY = offsets[i][0] + scale * y / height
+            pX = offsets[i][0] + scale * x / scale_clamp
+            pY = offsets[i][0] + scale * y / scale_clamp
             value += simplex.noise2d(pX, pY) * weight
             # Each octave have less impact than the previous
             weight *= persistence
             scale *= lacunarity
-        heightmap[x, y] = value
-        minValue = min(minValue, value)
-        maxValue = max(maxValue, value)
+        # Store height
+        heightmap[y, x] = value
 
     # Correcting data to put them between -1.0 and 1.0
+    minValue = heightmap.lowest
+    maxValue = heightmap.highest
     if maxValue != minValue:
         for x, y in heightmap.coordinates:
-            heightmap[x, y] = (heightmap[x, y] - minValue) / \
+            heightmap[y, x] = (heightmap[y, x] - minValue) / \
                 (maxValue - minValue)
 
     # Return the heightmap

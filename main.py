@@ -7,6 +7,8 @@ import os
 import src.generation
 import src.raw
 
+import logging
+logging.basicConfig(level=logging.DEBUG)
 
 def parse_args():
     argparser = argparse.ArgumentParser()
