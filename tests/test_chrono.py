@@ -7,7 +7,7 @@ logging.basicConfig(level=logging.DEBUG)
 class Test_Chrono(unittest.TestCase):
     def test_chrono(self):
         f = Foo()
-        self.assertLogs(f.foo(100_000_000))
+        self.assertLogs(f.foo(100))
 
 class Foo():
     @chrono.chrono
