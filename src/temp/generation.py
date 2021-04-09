@@ -1,8 +1,10 @@
 """Module to call to launche generation from parameters"""
 
-import os
-import logging
+import importlib
 import json
+import logging
+import os
+
 
 def load_parameters(path: str) -> hash:
     """Load the parameters from the file
