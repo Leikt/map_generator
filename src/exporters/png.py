@@ -1,10 +1,14 @@
-from PIL import Image
-import time
-import numpy
+#! /usr/bin/env python3
+# coding: utf-8
+
 import logging
+import time
+
+import numpy
+from PIL import Image
 
 
-def render(out: str, width: int, height: int, data: list):
+def export(out: str, width: int, height: int, data: list):
     """Render the data into a png file
     Parameters
     ==========
@@ -36,7 +40,7 @@ def render(out: str, width: int, height: int, data: list):
     image.save(out)
 
 
-def renderRaw(out: str, data: list):
+def exportRaw(out: str, data: list):
     """Render the data as they comes
     Parameters
     ==========

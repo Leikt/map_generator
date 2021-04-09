@@ -1,18 +1,14 @@
-#! /usr/bin/env python3
-# coding: utf-8
+"""Module to call to launche generation from parameters"""
 
-import importlib
-import json
+import os
 import logging
+import json
 
-logging.basicConfig(level=logging.DEBUG)
-
-
-def load_parameters(filename: str) -> hash:
+def load_parameters(path: str) -> hash:
     """Load the parameters from the file
     Parameters
     ==========
-        filename: str
+        path: str
     The path to the parameters file
     Returns
     =======
@@ -20,7 +16,7 @@ def load_parameters(filename: str) -> hash:
     The parameters hash"""
 
     try:
-        with open(filename) as file:
+        with open(path) as file:
             return json.load(file)
     except FileNotFoundError as e:
         logging.critical("Can't find parameters file : {msg}".format(msg=e))
@@ -53,24 +49,25 @@ def load_heightmap_generation(module: str):
         logging.critical(
             "Can't find the heightmap generation module named '{mod}'. Raise the error : {err}".format(mod=module, err=e))
 
-
-def run():
-    """Run the generation"""
-    # Load the parameters
-    parameters = load_parameters("generation_parameters.json")
+def run(param_filename: str):
+    # Retrieve parameters
+    dirname = os.path.dirname(os.path.dirname(__file__))
+    path_to_params = os.path.join(dirname, param_filename)
+    parameters = load_parameters(path_to_params)
     
-    # Generate the heightmap
-    hm_generation = load_heightmap_generation(
-        parameters["heightmapGeneration"]["module"])
-    hm = hm_generation.generate(**parameters["heightmapGeneration"], **parameters["map"],
-                                seed=parameters["seed"], randomizeSeed=parameters["randomizeSeed"])
-    # Erode the heightmap
-    # TODO
-    # Posterize the heightmap
-    # TODO
-    # Create cliffmap
-    # TODO
-    # Place life water
-    # TODO
-    # Place biomes
-    # TODO
+    # Configure debug
+    debug = parameters["debug"]
+    debug_enabled = debug.get("enabled", False) if debug is not None else False
+    load_enabled = debug.get("loadEnabled", False) if debug is not None and debug_enabled else False
+
+    # Run the generation with the options
+    if load_enabled and debug["loadBase"]:
+        # Load the base heightmap
+        # standard_loading
+        pass
+    else:
+        # Generate the heightmap
+        # actual_logic
+        # Save the heightmap
+        # standard_export
+        pass

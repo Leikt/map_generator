@@ -5,8 +5,8 @@ import logging
 import random
 
 import opensimplex
-from src.chrono import chrono
-from src.heightmap import Heightmap
+from src.helpers.chrono import chrono
+from src.raw.heightmap import Heightmap
 
 
 @chrono

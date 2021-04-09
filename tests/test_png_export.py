@@ -4,7 +4,7 @@
 import unittest
 
 import numpy
-import src.rendering.png_renderer as png_renderer
+import src.exporters.png as png
 
 
 class Test_PNGRenderer(unittest.TestCase):
@@ -15,7 +15,7 @@ class Test_PNGRenderer(unittest.TestCase):
         data[0, 0] = 1.0
         data[0, 1] = 0.66  # Y, X
         data[1, 0] = 0.33
-        png_renderer.render(
+        png.export(
             "tests/outputs/png_renderer_bw.png", width, height, data)
 
     def test_3d_data(self):
@@ -25,12 +25,12 @@ class Test_PNGRenderer(unittest.TestCase):
         data[0, 0] = [0, 1, 0]
         data[0, 1] = [1, 0, 0]
         data[1, 0] = [0, 0, 1]
-        png_renderer.render(
+        png.export(
             "tests/outputs/png_renderer_color.png", width, height, data)
 
     def test_error(self):
         data = numpy.zeros(10)
-        self.assertRaises(ValueError, png_renderer.render,
+        self.assertRaises(ValueError, png.export,
                           "blabla", 10, 0, data)
 
     def test_raw(self):
@@ -38,4 +38,4 @@ class Test_PNGRenderer(unittest.TestCase):
         for x in range(10):
             for y in range(15):
                 data[y, x] = [12, x*10, 233]
-        png_renderer.renderRaw("tests/outputs/png_renderer_raw.png", data)
+        png.exportRaw("tests/outputs/png_renderer_raw.png", data)

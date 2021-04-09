@@ -3,7 +3,7 @@
 
 import numpy
 
-from src.area import Area
+from src.helpers.area import Area
 
 class Heightmap():
     """Class that manage a heightmap"""
@@ -40,3 +40,12 @@ class Heightmap():
     def height(self):
         """Access the height property"""
         return self._area.height
+
+    def to_numpy(self):
+        """Convert the heightmap to a array numpy
+        Returns
+        =======
+            numpy.array
+        The array"""
+
+        return numpy.copy(self._data)

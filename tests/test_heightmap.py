@@ -3,7 +3,7 @@
 
 import unittest
 
-from src.heightmap import Heightmap
+from src.raw.heightmap import Heightmap
 
 
 class Test_Heightmap(unittest.TestCase):

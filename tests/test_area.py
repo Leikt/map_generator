@@ -3,7 +3,7 @@
 
 import unittest
 
-from src.area import Area
+from src.helpers.area import Area
 
 
 class Test_Area(unittest.TestCase):

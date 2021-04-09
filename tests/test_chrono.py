@@ -1,6 +1,7 @@
-import unittest
-from src import chrono
 import logging
+import unittest
+
+from src.helpers import chrono
 
 logging.basicConfig(level=logging.DEBUG)
 

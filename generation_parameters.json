@@ -20,15 +20,14 @@
     "cliffmapping":{},
     "tilemapGenerator": {},
     "debug": {
-        "load": {
-            "enabled": false,
-            "identifier": "",
-            "base": true,
-            "erosion": true,
-            "posterization": true,
-            "cliffs": true,
-            "water": true,
-            "biomes": true
-        }
+        "enabled": true,
+        "loadEnabled": true,
+        "identifier": "",
+        "loadBase": true,
+        "loadErosion": true,
+        "loadPosterization": true,
+        "loadCliffs": true,
+        "loadWater": true,
+        "loadBiomes": true
     }
 }

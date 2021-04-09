@@ -1,10 +1,12 @@
 #! /usr/bin/env python3
 # coding: utf-8
 
-from src.heightmap import Heightmap
+from src.raw.heightmap import Heightmap
 
 
 class RawMap:
+    """Class that contains raw map data"""
+    
     def __init__(self, width, height):
         self._heightmap = Heightmap(width, height)
 
