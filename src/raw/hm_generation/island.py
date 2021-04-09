@@ -34,7 +34,7 @@ def generate(*, width: int, height: int, seed: int, octaves: int, persistence: f
     =======
         HeightMap
     The result of the generation"""
-    
+
     # Initialize working variables
     heightmap = Heightmap(width, height)
     prng = random.Random(seed)

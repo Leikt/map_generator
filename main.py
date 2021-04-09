@@ -5,6 +5,7 @@ import argparse
 import os
 
 import src.generation
+import src.raw
 
 
 def parse_args():

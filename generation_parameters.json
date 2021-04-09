@@ -1,33 +1,20 @@
 {
     "seed": 1234567890,
-    "randomizeSeed": false,
+    "randomize_seed": false,
     "map": {
         "width": 100,
         "height": 100
     },
-    "data": {
-        "path": "./outputs/{identifier}/"
-    },
-    "heightmapGeneration": {
-        "module": "simple",
-        "scale": 2,
+    "outputs": "{directory}/outputs/{id}",
+    "heightmap_generation": {
+        "type": "simple",
+        "initial_scale": 2,
         "octaves": 7,
         "persistence": 0.5,
         "lacunarity": 2
     },
     "erosion": {},
     "posterization": {},
-    "cliffmapping":{},
-    "tilemapGenerator": {},
-    "debug": {
-        "enabled": true,
-        "loadEnabled": true,
-        "identifier": "",
-        "loadBase": true,
-        "loadErosion": true,
-        "loadPosterization": true,
-        "loadCliffs": true,
-        "loadWater": true,
-        "loadBiomes": true
-    }
+    "cliff_mapping":{},
+    "tilemap_generation": {}
 }
