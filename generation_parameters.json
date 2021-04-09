@@ -1,0 +1,31 @@
+{
+    "seed": 1234567890,
+    "randomizeSeed": false,
+    "map": {
+        "width": 300,
+        "height": 300
+    },
+    "data": {
+        "path": "./outputs/{identifier}/"
+    },
+    "heightmapGenerator": {
+        "name": "Simple",
+        "scale": 2,
+        "octaves": 7,
+        "persistence": 0.5,
+        "lacunarity": 2
+    },
+    "tilemapGenerator": {},
+    "debug": {
+        "load": {
+            "enabled": false,
+            "identifier": "",
+            "base": true,
+            "erosion": true,
+            "posterization": true,
+            "cliffs": true,
+            "water": true,
+            "biomes": true
+        }
+    }
+}
