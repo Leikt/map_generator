@@ -51,14 +51,14 @@ def generate(**kwargs) -> Heightmap:
             # Each octave have less impact than the previous
             weight *= persistence
             scale *= lacunarity
-        heightmap[x, y] = value
+        heightmap[y, x] = value
         minValue = min(minValue, value)
         maxValue = max(maxValue, value)
 
     # Correcting data to put them between -1.0 and 1.0
     if maxValue != minValue:
         for x, y in heightmap.coordinates:
-            heightmap[x, y] = (heightmap[x, y] - minValue) / (maxValue - minValue)
+            heightmap[y, x] = (heightmap[y, x] - minValue) / (maxValue - minValue)
     
     # Return the heightmap
     return heightmap

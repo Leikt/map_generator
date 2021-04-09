@@ -11,7 +11,7 @@ class Heightmap():
     def __init__(self, width, height):
         self._area = Area(width, height)
         self._data = numpy.zeros(
-            (self._area.width, self._area.height), numpy.float64)
+            (self._area.height, self._area.width), numpy.float64)
 
     def __getitem__(self, key: tuple) -> float:
         """Return the height at the given coordinates"""
