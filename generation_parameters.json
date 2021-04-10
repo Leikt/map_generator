@@ -8,7 +8,7 @@
     "outputs": "{directory}/outputs/{id}",
     "inputs":{},
     "heightmap_generation": {
-        "type": "simple",
+        "type": "island",
         "initial_scale": 2,
         "octaves": 7,
         "persistence": 0.5,
@@ -20,7 +20,7 @@
         "ease_power": 0.85
     },
     "erosion": {
-        "droplets": 30000,
+        "droplets": 10000,
         "brush_radius": 3,
         "inertia": 0.05,
         "sediment_capacity_factor": 4,

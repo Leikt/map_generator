@@ -47,40 +47,197 @@ class HeightAndGradient():
         """Set the gradient_y property"""
         self.__gradient_y = value
 
+
 class Erosion():
     def __init__(self, heightmap: Heightmap, *, seed: int, droplets: int, brush_radius: int,
-          inertia: float, sediment_capacity_factor: float,
-          sediment_min_capacity: float, erode_speed: float,
-          deposit_speed: float, evaporate_speed: float,
-          gravity: float, droplet_lifetime: int,
-          initial_water_volume: float, initial_speed: float,
-          sea_level: float, **unused):
+                 inertia: float, sediment_capacity_factor: float,
+                 sediment_min_capacity: float, erode_speed: float,
+                 deposit_speed: float, evaporate_speed: float,
+                 gravity: float, droplet_lifetime: int,
+                 initial_water_volume: float, initial_speed: float,
+                 sea_level: float, **unused):
 
-          self.__heightmap = heightmap
-          self.__prng = random.Random(seed + 1)
-          self.__droplets = droplets
-          self.__droplet_lifetime = droplet_lifetime
-          self.__brush_radius = brush_radius
-          self.__sediment_capacity_factor = sediment_capacity_factor
-          self.__sediment_min_capacity = sediment_min_capacity
-          self.__inertia = inertia
-          self.__deposit_speed = deposit_speed
-          self.__erode_speed = erode_speed
-          self.__evaporate_speed = evaporate_speed
-          self.__gravity = gravity
-          self.__initial_water_volume = initial_water_volume
-          self.__initial_speed = initial_speed
-          self.__sea_level = sea_level
-        
+        self.__heightmap = heightmap
+        self.__prng = random.Random(seed + 1)
+        self.__droplets = droplets
+        self.__droplet_lifetime = droplet_lifetime
+        self.__brush_radius = brush_radius
+        self.__sediment_capacity_factor = sediment_capacity_factor
+        self.__sediment_min_capacity = sediment_min_capacity
+        self.__inertia = inertia
+        self.__deposit_speed = deposit_speed
+        self.__erode_speed = erode_speed
+        self.__evaporate_speed = evaporate_speed
+        self.__gravity = gravity
+        self.__initial_water_volume = initial_water_volume
+        self.__initial_speed = initial_speed
+        self.__sea_level = sea_level
+
     def init_brushes(self):
         """Initialize the brushes"""
+        # Store attributes in local variables for lisibility
+        width = self.__heightmap.width
+        height = self.__heightmap.height
+        radius = self.__brush_radius
 
-        # Initialize the attribute
-        self.__brushes = numpy.zeros((self.__heightmap.height, self.__heightmap.width, self.__brush_radius * 2, self.__brush_radius * 2))
-    
+        # Initialize the attributes
+        self.__brushes_indices = numpy.full((height, width), None, object)
+        self.__brushes_weights = numpy.full((height, width), None, object)
+
+        # Initialize the working variables
+        offsets = [None for i in range(4 * radius * radius)]
+        weights = [None for i in range(4 * radius * radius)]
+        weight_sum = 0
+        add_index = 0
+        area = Area(width, height)
+        # center_area = OffsetedArea(
+        #     width - radius * 2, height - radius * 2, radius, radius)
+        brush_area = OffsetedArea(radius * 2, radius * 2, -radius, -radius)
+
+        # Create all brushes
+        for center_x, center_y in area:
+            # Borders are managed diffently
+            # if not center_area.valid(center_x, center_y):
+            if center_y <= radius or center_y >= height - radius or center_x <= radius + 1 or center_x >= width - radius:
+                weight_sum = 0
+                add_index = 0
+                # Each cell in the brush area
+                for x, y in brush_area:
+                    sqr_dst = x * x + y * y
+                    # Brush are circles
+                    if sqr_dst < radius * radius:
+                        coord_x = center_x + x
+                        coord_y = center_y + y
+                        # If the cell is outside the map, it's not added to the brush
+                        if area.valid(coord_x, coord_y):
+                            weight = 1 - math.sqrt(sqr_dst) / radius
+                            weight_sum += weight
+                            weights[add_index] = weight
+                            offsets[add_index] = (x, y)
+                            add_index += 1
+            # Update the entries
+            # Notice that add_index and all working variables are only
+            # modified when the brush passes on the border cells
+            # Since first coordinates are (0, 0), the num_entries are always set
+            num_entries = add_index
+            # Set the brush data
+            self.__brushes_indices[center_y, center_x] = [None for i in range(num_entries)]
+            self.__brushes_weights[center_y, center_x] = [None for i in range(num_entries)]
+            for i in range(num_entries):
+                self.__brushes_indices[center_y, center_x][i] = [
+                    center_x + offsets[i][0], center_y + offsets[i][1]]
+                self.__brushes_weights[center_y,
+                                       center_x][i] = weights[i] / weight_sum
+
     def erode(self):
         """Repeat the erosion process for the wanted num of time"""
-        pass
+
+        # Init variables
+        hag = HeightAndGradient()
+
+        for iteration in range(self.__droplets):
+            # Advancement log
+            if iteration % LOGGING_STEP == 0:
+                self.log_progress(iteration, self.__droplets)
+            # Initialize work variables
+            pos_x = self.__prng.randint(1, self.__heightmap.width - 2)
+            pos_y = self.__prng.randint(1, self.__heightmap.height - 2)
+            dir_x = 0
+            dir_y = 0
+            speed = self.__initial_speed
+            water = self.__initial_water_volume
+            sediment = 0
+
+            for _a_day_as_a_droplet in range(self.__droplet_lifetime):
+                # Initialize droplet
+                node_x = int(pos_x)
+                node_y = int(pos_y)
+                # Calculate droplet's offset inside the cell (0,0) = at NW node, (1,1) = at SE node
+                cell_offset_x = pos_x - node_x
+                cell_offset_y = pos_y - node_y
+
+                # Calculate droplet's height and direction of flow with bilinear interpolation of surrounding heights
+                self.calculate_height_and_gradient(
+                    hag, self.__heightmap, pos_x, pos_y)
+
+                # Update the droplet's direction and position (move position 1 unit regardless of speed)
+                dir_x = dir_x * self.__inertia - \
+                    hag.gradient_x * (1 - self.__inertia)
+                dir_y = dir_y * self.__inertia - \
+                    hag.gradient_y * (1 - self.__inertia)
+
+                # Normalize direction
+                length = math.sqrt(dir_x * dir_x + dir_y * dir_y)
+                if (length != 0):
+                    dir_x /= length
+                    dir_y /= length
+                pos_x += dir_x
+                pos_y += dir_y
+
+                # Stop simulating droplet if it's not moving or has flowed over edge of map
+                if ((dir_x == 0 and dir_y == 0) or pos_x < 1 or pos_x >= self.__heightmap.width - 2 or pos_y < 1 or pos_y >= self.__heightmap.height - 2):
+                    break
+
+                # Find the droplet's new height and calculate the delta_height
+                new_height = self.calculate_height_and_gradient(
+                    None, self.__heightmap, pos_x, pos_y).height
+                delta_height = new_height - hag.height
+
+                # Stop simulating droplet if it's fallen into the sea
+                if (self.__sea_level != None and new_height <= self.__sea_level):
+                    break
+
+                # Calculate the droplet's sediment capacity (higher when moving fast down a slope and contains lots of water)
+                sediment_capacity = max(-delta_height * speed * water *
+                                        self.__sediment_capacity_factor, self.__sediment_min_capacity)
+
+                # If carrying more sediment than capacity, or if flowing uphill:
+                if (sediment > sediment_capacity or delta_height > 0):
+                    # If moving uphill (delta_height > 0) try fill up to the current height, otherwise deposit a fraction of the excess sediment
+                    amount_to_deposit = None
+                    if (delta_height > 0):
+                        amount_to_deposit = min(delta_height, sediment)
+                    else:
+                        amount_to_deposit = (
+                            sediment - sediment_capacity) * self.__deposit_speed
+                    sediment -= amount_to_deposit
+                    # Add the sediment to the four nodes of the current cell using bilinear interpolation
+                    #  Deposition is not distributed over a radius (like erosion) so that it can fill small pits
+                    self.__heightmap[node_y, node_x] += amount_to_deposit * \
+                        (1 - cell_offset_x) * (1 - cell_offset_y)
+                    self.__heightmap[node_y, node_x + 1] += amount_to_deposit * \
+                        cell_offset_x * (1 - cell_offset_y)
+                    self.__heightmap[node_y + 1, node_x] += amount_to_deposit * \
+                        (1 - cell_offset_x) * cell_offset_y
+                    self.__heightmap[node_y + 1, node_x + 1] += amount_to_deposit * \
+                        cell_offset_x * cell_offset_y
+
+                else:
+                    # Erode a fraction of the droplet's current carry capacity.
+                    # Clamp the erosion to the change in height so that it doesn't dig a hole in the terrain behind the droplet
+                    amount_to_erode = min(
+                        (sediment_capacity - sediment) * self.__erode_speed, -delta_height)
+
+                    # Use erosion brush to erode from all nodes inside the droplet's erosion radius
+                    for brush_point_index in range(len(self.__brushes_indices[node_y, node_x])):
+                        x, y = self.__brushes_indices[node_y,
+                                                      node_x][brush_point_index]
+                        weighed_erode_amount = amount_to_erode * \
+                            self.__brushes_weights[node_y, node_x][brush_point_index]
+                        delta_sediment = None
+                        if (self.__heightmap[y, x] < weighed_erode_amount):
+                            delta_sediment = self.__heightmap[y, x]
+                        else:
+                            delta_sediment = weighed_erode_amount
+                        self.__heightmap[y, x] -= delta_sediment
+                        sediment += delta_sediment
+
+                # Update droplet's speed and water content
+                speed = math.sqrt(
+                    max(0, speed * speed + delta_height * self.__gravity))
+                water *= (1 - self.__evaporate_speed)
+        # Log final advancement
+        self.log_progress(self.__droplets, self.__droplets)
 
     def calculate_height_and_gradient(self, h_and_g: HeightAndGradient, heightmap: Heightmap, pos_x: float, pos_y: float) -> HeightAndGradient:
         """Calculate the height of the point and the gradients in all directions
@@ -99,6 +256,7 @@ class Erosion():
             HeightAndGradient
         Result of the calculation"""
 
+        h_and_g = HeightAndGradient if h_and_g is None else h_and_g
         # Cell coordinates
         coord_x, coord_y = int(pos_x), int(pos_y)
         # Calculate droplet's offset inside the cell (0,0) = at NW node, (1,1) = at SE node
@@ -118,11 +276,12 @@ class Erosion():
             (1 - y) + height_sw * (1 - x) * y + height_se * x * y
         # Return the result
         return h_and_g
-    
+
     def log_progress(self, iteration: int, droplets: int):
         percent = round(10000 * iteration / droplets) / 100
         logging.debug("Erosion : {count} droplets of {total} ({percent}%)...".format(
             count=iteration, total=droplets, percent=percent))
+
 
 @chrono
 def erode(heightmap: Heightmap, **kwargs):
@@ -159,5 +318,7 @@ def erode(heightmap: Heightmap, **kwargs):
         **unused
     Other unused arguments, hack to use **large_hash when calling this method"""
 
-    Erosion(heightmap, **kwargs)
+    er = Erosion(heightmap, **kwargs)
+    er.init_brushes()
+    er.erode()
     return heightmap
