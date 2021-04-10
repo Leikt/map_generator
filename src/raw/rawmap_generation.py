@@ -5,6 +5,7 @@ import importlib
 import logging
 
 from src.raw.rawmap import RawMap
+import src.raw.erosion as erosion
 
 """Manage the rawmap generation process"""
 
@@ -32,6 +33,7 @@ def generate(parameters: hash) -> RawMap:
         seed = parameters["seed"]
         hmgen_parameters = parameters["heightmap_generation"]
         hmgen_module_name = hmgen_parameters["type"]
+        erosion_parameters = parameters["erosion"]
         del mapParams  # Useless variable
     except KeyError as e:
         logging.critical(
@@ -51,5 +53,14 @@ def generate(parameters: hash) -> RawMap:
     # Generate the heightmap
     rawmap.heightmap = hmgen_module.generate(
         width=width, height=height, seed=seed, **hmgen_parameters)
+
+    # Erode the heightmap
+    erosion.erode(rawmap.heightmap, seed=seed, **erosion_parameters)
+
+    # Posterize heigtmap
+
+    # Cliff mapping
+
+    # Water mapping 
 
     return rawmap
