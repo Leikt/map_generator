@@ -6,8 +6,9 @@
         "height": 100
     },
     "outputs": "{directory}/outputs/{id}",
+    "inputs":{},
     "heightmap_generation": {
-        "type": "island",
+        "type": "simple",
         "initial_scale": 2,
         "octaves": 7,
         "persistence": 0.5,
@@ -20,17 +21,18 @@
     },
     "erosion": {
         "droplets": 30000,
-        "radius": 3,
+        "brush_radius": 3,
         "inertia": 0.05,
         "sediment_capacity_factor": 4,
         "sediment_min_capacity": 0.1,
         "erode_speed": 0.3,
-        "deposite_speed": 0.3,
+        "deposit_speed": 0.3,
         "evaporate_speed": 0.01,
         "gravity": 4.0,
-        "droplet_liftime": 30,
+        "droplet_lifetime": 30,
         "initial_water_volume": 1,
-        "initial_speed": 1
+        "initial_speed": 1,
+        "sea_level": 0
     },
     "posterization": {},
     "cliff_mapping": {},
