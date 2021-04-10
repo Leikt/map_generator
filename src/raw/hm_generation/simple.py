@@ -56,16 +56,27 @@ def generate(*, width: int, height: int, seed: int, octaves: int, persistence: f
             # Each octave have less impact than the previous
             weight *= persistence
             scale *= lacunarity
+<<<<<<< HEAD
         # Store height
         heightmap[y, x] = value
+=======
+        heightmap[y, x] = value
+        minValue = min(minValue, value)
+        maxValue = max(maxValue, value)
+>>>>>>> 49003b8214e759f2ab9d98a285bb6645e907bbf3
 
     # Correcting data to put them between -1.0 and 1.0
     minValue = heightmap.lowest
     maxValue = heightmap.highest
     if maxValue != minValue:
         for x, y in heightmap.coordinates:
+<<<<<<< HEAD
             heightmap[y, x] = (heightmap[y, x] - minValue) / \
                 (maxValue - minValue)
 
+=======
+            heightmap[y, x] = (heightmap[y, x] - minValue) / (maxValue - minValue)
+    
+>>>>>>> 49003b8214e759f2ab9d98a285bb6645e907bbf3
     # Return the heightmap
     return heightmap
