@@ -47,6 +47,34 @@ class HeightAndGradient():
         """Set the gradient_y property"""
         self.__gradient_y = value
 
+class ErosionBrush():
+    def __init__(self, radius):
+        # Initialize work variables
+        #   Square area used to create the circular brush
+        brush_area = OffsetedArea(
+            radius * 2, radius * 2, -radius, -radius)
+        weight_sum = 0
+        sqr_radius = radius ** 2
+        self.__brush = []
+
+        # Create the brush
+        for x, y in brush_area:
+            sqr_dst = x * x + y * y
+            if sqr_dst < sqr_radius:
+                weight = 1 - math.sqrt(sqr_dst) / radius
+                weight_sum += weight
+                self.__brush.append([x, y, weight])
+
+        # Correct weights and freeze data
+        for i in range(len(self.__brush)):
+            self.__brush[i][2] /= weight_sum
+            self.__brush[i] = tuple(self.__brush[i])
+        # Freeze the brush
+        self.__brush = tuple(self.__brush)
+
+    def __iter__(self):
+        for brush in self.__brush:
+            yield brush
 
 class Erosion():
     def __init__(self, heightmap: Heightmap, *, seed: int, droplets: int, brush_radius: int,
@@ -73,67 +101,92 @@ class Erosion():
         self.__initial_speed = initial_speed
         self.__sea_level = sea_level
 
-    def init_brushes(self):
-        """Initialize the brushes"""
-        # Store attributes in local variables for lisibility
-        width = self.__heightmap.width
-        height = self.__heightmap.height
-        radius = self.__brush_radius
+    def init_brush(self):
+        self.__brush = ErosionBrush(self.__brush_radius)
 
-        # Initialize the attributes
-        self.__brushes_indices = numpy.full((height, width), None, object)
-        self.__brushes_weights = numpy.full((height, width), None, object)
+        # # Initialize work variables
+        # #   Square area used to create the circular brush
+        # brush_area = OffsetedArea(
+        #     self.__brush_radius * 2, self.__brush_radius * 2, -self.__brush_radius, -self.__brush_radius)
+        # weight_sum = 0
+        # sqr_radius = self.__brush_radius ** 2
+        # self.__brush = []
 
-        # Initialize the working variables
-        offsets = [None for i in range(4 * radius * radius)]
-        weights = [None for i in range(4 * radius * radius)]
-        weight_sum = 0
-        add_index = 0
-        area = Area(width, height)
-        # center_area = OffsetedArea(
-        #     width - radius * 2, height - radius * 2, radius, radius)
-        brush_area = OffsetedArea(radius * 2, radius * 2, -radius, -radius)
+        # # Create the brush
+        # for x, y in brush_area:
+        #     sqr_dst = x * x + y * y
+        #     if sqr_dst < sqr_radius:
+        #         weight = 1 - math.sqrt(sqr_dst) / self.__brush_radius
+        #         weight_sum += weight
+        #         self.__brush.append([x, y, weight])
 
-        # Create all brushes
-        for center_x, center_y in area:
-            # Borders are managed diffently
-            # if not center_area.valid(center_x, center_y):
-            if center_y <= radius or center_y >= height - radius or center_x <= radius + 1 or center_x >= width - radius:
-                weight_sum = 0
-                add_index = 0
-                # Each cell in the brush area
-                for x, y in brush_area:
-                    sqr_dst = x * x + y * y
-                    # Brush are circles
-                    if sqr_dst < radius * radius:
-                        coord_x = center_x + x
-                        coord_y = center_y + y
-                        # If the cell is outside the map, it's not added to the brush
-                        if area.valid(coord_x, coord_y):
-                            weight = 1 - math.sqrt(sqr_dst) / radius
-                            weight_sum += weight
-                            weights[add_index] = weight
-                            offsets[add_index] = (x, y)
-                            add_index += 1
-            # Update the entries
-            # Notice that add_index and all working variables are only
-            # modified when the brush passes on the border cells
-            # Since first coordinates are (0, 0), the num_entries are always set
-            num_entries = add_index
-            # Set the brush data
-            self.__brushes_indices[center_y, center_x] = [None for i in range(num_entries)]
-            self.__brushes_weights[center_y, center_x] = [None for i in range(num_entries)]
-            for i in range(num_entries):
-                self.__brushes_indices[center_y, center_x][i] = [
-                    center_x + offsets[i][0], center_y + offsets[i][1]]
-                self.__brushes_weights[center_y,
-                                       center_x][i] = weights[i] / weight_sum
+        # # Correct weights and freeze data
+        # for i in range(len(self.__brush)):
+        #     self.__brush[i][2] /= weight_sum
+        #     self.__brush[i] = tuple(self.__brush[i])
+        # # Freeze the brush
+        # self.__brush = tuple(self.__brush)
+
+        # # Store attributes in local variables for lisibility
+        # width = self.__heightmap.width
+        # height = self.__heightmap.height
+        # radius = self.__brush_radius
+
+        # # Initialize the attributes
+        # self.__brushes_indices = numpy.full((height, width), None, object)
+        # self.__brushes_weights = numpy.full((height, width), None, object)
+
+        # # Initialize the working variables
+        # offsets = [None for i in range(4 * radius * radius)]
+        # weights = [None for i in range(4 * radius * radius)]
+        # weight_sum = 0
+        # add_index = 0
+        # area = Area(width, height)
+        # # center_area = OffsetedArea(
+        # #     width - radius * 2, height - radius * 2, radius, radius)
+        # brush_area = OffsetedArea(radius * 2, radius * 2, -radius, -radius)
+
+        # # Create all brushes
+        # for center_x, center_y in area:
+        #     # Borders are managed diffently
+        #     # if not center_area.valid(center_x, center_y):
+        #     if center_y <= radius or center_y >= height - radius or center_x <= radius + 1 or center_x >= width - radius:
+        #         weight_sum = 0
+        #         add_index = 0
+        #         # Each cell in the brush area
+        #         for x, y in brush_area:
+        #             sqr_dst = x * x + y * y
+        #             # Brush are circles
+        #             if sqr_dst < radius * radius:
+        #                 coord_x = center_x + x
+        #                 coord_y = center_y + y
+        #                 # If the cell is outside the map, it's not added to the brush
+        #                 if area.valid(coord_x, coord_y):
+        #                     weight = 1 - math.sqrt(sqr_dst) / radius
+        #                     weight_sum += weight
+        #                     weights[add_index] = weight
+        #                     offsets[add_index] = (x, y)
+        #                     add_index += 1
+        #     # Update the entries
+        #     # Notice that add_index and all working variables are only
+        #     # modified when the brush passes on the border cells
+        #     # Since first coordinates are (0, 0), the num_entries are always set
+        #     num_entries = add_index
+        #     # Set the brush data
+        #     self.__brushes_indices[center_y, center_x] = [None for i in range(num_entries)]
+        #     self.__brushes_weights[center_y, center_x] = [None for i in range(num_entries)]
+        #     for i in range(num_entries):
+        #         self.__brushes_indices[center_y, center_x][i] = [
+        #             center_x + offsets[i][0], center_y + offsets[i][1]]
+        #         self.__brushes_weights[center_y,
+        #                                center_x][i] = weights[i] / weight_sum
 
     def erode(self):
         """Repeat the erosion process for the wanted num of time"""
-
+        
         # Init variables
         hag = HeightAndGradient()
+        area = Area(self.__heightmap.width, self.__heightmap.height)
 
         for iteration in range(self.__droplets):
             # Advancement log
@@ -186,7 +239,7 @@ class Erosion():
                 # Stop simulating droplet if it's fallen into the sea
                 if (self.__sea_level != None and new_height <= self.__sea_level):
                     break
-
+                
                 # Calculate the droplet's sediment capacity (higher when moving fast down a slope and contains lots of water)
                 sediment_capacity = max(-delta_height * speed * water *
                                         self.__sediment_capacity_factor, self.__sediment_min_capacity)
@@ -219,22 +272,37 @@ class Erosion():
                         (sediment_capacity - sediment) * self.__erode_speed, -delta_height)
 
                     # Use erosion brush to erode from all nodes inside the droplet's erosion radius
-                    for brush_point_index in range(len(self.__brushes_indices[node_y, node_x])):
-                        x, y = self.__brushes_indices[node_y,
-                                                      node_x][brush_point_index]
-                        weighed_erode_amount = amount_to_erode * \
-                            self.__brushes_weights[node_y, node_x][brush_point_index]
-                        delta_sediment = None
-                        if (self.__heightmap[y, x] < weighed_erode_amount):
-                            delta_sediment = self.__heightmap[y, x]
-                        else:
-                            delta_sediment = weighed_erode_amount
+                    for dx, dy, weight in self.__brush:
+                        x = node_x + dx
+                        y = node_y + dy
+                        # Make sure that the coordinates are in the map
+                        if not area.valid(x, y):
+                            continue
+                        # Calculate sedimeent
+                        weighed_erode_amount = amount_to_erode * weight
+                        delta_sediment = min(self.__heightmap[y, x], weighed_erode_amount)
                         self.__heightmap[y, x] -= delta_sediment
                         sediment += delta_sediment
+                        
+
+                    # # Use erosion brush to erode from all nodes inside the droplet's erosion radius
+                    # for brush_point_index in range(len(self.__brushes_indices[node_y, node_x])):
+                    #     x, y = self.__brushes_indices[node_y,
+                    #                                   node_x][brush_point_index]
+                    #     weighed_erode_amount = amount_to_erode * \
+                    #         self.__brushes_weights[node_y,
+                    #                                node_x][brush_point_index]
+                    #     delta_sediment = None
+                    #     if (self.__heightmap[y, x] < weighed_erode_amount):
+                    #         delta_sediment = self.__heightmap[y, x]
+                    #     else:
+                    #         delta_sediment = weighed_erode_amount
+                    #     self.__heightmap[y, x] -= delta_sediment
+                    #     sediment += delta_sediment
 
                 # Update droplet's speed and water content
                 speed = math.sqrt(
-                    max(0, speed * speed + delta_height * self.__gravity))
+                    max(0, speed ** 2 + delta_height * self.__gravity))
                 water *= (1 - self.__evaporate_speed)
         # Log final advancement
         self.log_progress(self.__droplets, self.__droplets)
@@ -256,7 +324,7 @@ class Erosion():
             HeightAndGradient
         Result of the calculation"""
 
-        h_and_g = HeightAndGradient if h_and_g is None else h_and_g
+        h_and_g = HeightAndGradient() if h_and_g is None else h_and_g
         # Cell coordinates
         coord_x, coord_y = int(pos_x), int(pos_y)
         # Calculate droplet's offset inside the cell (0,0) = at NW node, (1,1) = at SE node
@@ -264,8 +332,8 @@ class Erosion():
         # Calculate heights of the four nodes of the droplet's cell
         height_nw = heightmap[coord_y, coord_x]
         height_ne = heightmap[coord_y, coord_x + 1]
-        height_sw = heightmap[coord_y - 1, coord_x]
-        height_se = heightmap[coord_y - 1, coord_x + 1]
+        height_sw = heightmap[coord_y + 1, coord_x]
+        height_se = heightmap[coord_y + 1, coord_x + 1]
         # Calculate droplet's direction of flow with bilinear interpolation of height difference along the edges
         h_and_g.gradient_x = (height_ne - height_nw) * \
             (1 - y) + (height_se - height_sw) * y
@@ -319,6 +387,6 @@ def erode(heightmap: Heightmap, **kwargs):
     Other unused arguments, hack to use **large_hash when calling this method"""
 
     er = Erosion(heightmap, **kwargs)
-    er.init_brushes()
+    er.init_brush()
     er.erode()
     return heightmap

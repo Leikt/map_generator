@@ -2,13 +2,13 @@
     "seed": 1234567890,
     "randomize_seed": false,
     "map": {
-        "width": 100,
-        "height": 100
+        "width": 200,
+        "height": 200
     },
     "outputs": "{directory}/outputs/{id}",
     "inputs":{},
     "heightmap_generation": {
-        "type": "island",
+        "type": "test_ramp",
         "initial_scale": 2,
         "octaves": 7,
         "persistence": 0.5,
@@ -23,7 +23,7 @@
         "droplets": 10000,
         "brush_radius": 3,
         "inertia": 0.05,
-        "sediment_capacity_factor": 4,
+        "sediment_capacity_factor": 7,
         "sediment_min_capacity": 0.1,
         "erode_speed": 0.3,
         "deposit_speed": 0.3,
