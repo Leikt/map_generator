@@ -57,14 +57,14 @@ def generate(*, width: int, height: int, seed: int, octaves: int, persistence: f
             weight *= persistence
             scale *= lacunarity
         # Store height
-        heightmap[y, x] = value
+        heightmap[x, y] = value
 
     # Correcting data to put them between -1.0 and 1.0
     minValue = heightmap.lowest
     maxValue = heightmap.highest
     if maxValue != minValue:
         for x, y in heightmap.coordinates:
-            heightmap[y, x] = (heightmap[y, x] - minValue) / \
+            heightmap[x, y] = (heightmap[x, y] - minValue) / \
                 (maxValue - minValue)
 
     # Return the heightmap

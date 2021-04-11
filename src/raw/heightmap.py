@@ -10,16 +10,18 @@ class Heightmap():
 
     def __init__(self, width, height):
         self._area = Area(width, height)
-        self._data = numpy.zeros(
-            (self._area.height, self._area.width), numpy.float64)
+        # self._data = numpy.zeros(
+        #     (self._area.height, self._area.width), numpy.float64)
+        self._data = [[0.0 for j in range(height)] for i in range(width)]
+
 
     def __getitem__(self, key: tuple) -> float:
         """Return the height at the given coordinates"""
-        return self._data[key]
+        return self._data[key[0]][key[1]]
 
     def __setitem__(self, key: tuple, value: float):
         """Set the height at the given coordinates"""
-        self._data[key] = value
+        self._data[key[0]][key[1]] = value
 
     @property
     def coordinates(self) -> object:
@@ -49,6 +51,7 @@ class Heightmap():
     @property
     def highest(self):
         """Access the highest property"""
+        # return numpy.amax(self._data)
         return numpy.amax(self._data)
 
     def to_numpy(self):
@@ -58,4 +61,5 @@ class Heightmap():
             numpy.array
         The array"""
 
-        return numpy.copy(self._data)
+        # return numpy.copy(self._data)
+        return numpy.array(self._data, numpy.float64)

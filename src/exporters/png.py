@@ -40,7 +40,7 @@ def export(out: str, width: int, height: int, data: list):
     image.save(out)
 
 
-def exportRaw(out: str, data: list):
+def exportRaw(out: str, data: list, rotate: bool = True):
     """Render the data as they comes
     Parameters
     ==========
@@ -49,6 +49,16 @@ def exportRaw(out: str, data: list):
         data: list
     2d array of [R,G,B] elements"""
     
+    # By default, the imagme will be renderer 90° right
+    if rotate:
+        width = len(data)
+        height = len(data[0])
+        rgb = numpy.zeros((height, width, 3), numpy.uint8)
+        for x in range(width):
+            for y in range(height):
+                rgb[y, x] = data[x, y]
+        data = rgb
+
     try:
         image = Image.fromarray(data, 'RGB')
         image.save(out)
@@ -66,11 +76,11 @@ def __convert2DArray(data, width, height):
     coef = 1
     if(minValue != maxValue):
         coef = 255.0 / (maxValue - minValue)
-    # Convert heightmap data into rgb data
+    # Convert data into rgb data
     rgb = numpy.zeros((height, width, 3), numpy.uint8)
     for x in range(width):
         for y in range(height):
-            value = int((data[y, x] - minValue) * coef)
+            value = int((data[x, y] - minValue) * coef)
             rgb[y, x] = [value, value, value]
     return rgb
 
@@ -84,12 +94,12 @@ def __convert3DArray(data, width, height):
     coef = 1
     if(minValue != maxValue):
         coef = 255 / (maxValue - minValue)
-    # Convert heightmap data into rgb data
+    # Convert data into rgb data
     rgb = numpy.zeros((height, width, 3), numpy.uint8)
     for x in range(width):
         for y in range(height):
-            r = data[y, x, 0] * coef
-            g = data[y, x, 1] * coef
-            b = data[y, x, 2] * coef
+            r = data[x, y, 0] * coef
+            g = data[x, y, 1] * coef
+            b = data[x, y, 2] * coef
             rgb[y, x] = [r, g, b]
     return rgb

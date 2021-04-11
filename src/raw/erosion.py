@@ -256,13 +256,13 @@ class Erosion():
                     sediment -= amount_to_deposit
                     # Add the sediment to the four nodes of the current cell using bilinear interpolation
                     #  Deposition is not distributed over a radius (like erosion) so that it can fill small pits
-                    self.__heightmap[node_y, node_x] += amount_to_deposit * \
+                    self.__heightmap[node_x, node_y] += amount_to_deposit * \
                         (1 - cell_offset_x) * (1 - cell_offset_y)
-                    self.__heightmap[node_y, node_x + 1] += amount_to_deposit * \
+                    self.__heightmap[node_x + 1, node_y] += amount_to_deposit * \
                         cell_offset_x * (1 - cell_offset_y)
-                    self.__heightmap[node_y + 1, node_x] += amount_to_deposit * \
+                    self.__heightmap[node_x, node_y + 1] += amount_to_deposit * \
                         (1 - cell_offset_x) * cell_offset_y
-                    self.__heightmap[node_y + 1, node_x + 1] += amount_to_deposit * \
+                    self.__heightmap[node_x + 1, node_y + 1] += amount_to_deposit * \
                         cell_offset_x * cell_offset_y
 
                 else:
@@ -280,8 +280,8 @@ class Erosion():
                             continue
                         # Calculate sedimeent
                         weighed_erode_amount = amount_to_erode * weight
-                        delta_sediment = min(self.__heightmap[y, x], weighed_erode_amount)
-                        self.__heightmap[y, x] -= delta_sediment
+                        delta_sediment = min(self.__heightmap[x, y], weighed_erode_amount)
+                        self.__heightmap[x, y] -= delta_sediment
                         sediment += delta_sediment
                         
 
@@ -293,11 +293,11 @@ class Erosion():
                     #         self.__brushes_weights[node_y,
                     #                                node_x][brush_point_index]
                     #     delta_sediment = None
-                    #     if (self.__heightmap[y, x] < weighed_erode_amount):
-                    #         delta_sediment = self.__heightmap[y, x]
+                    #     if (self.__heightmap[x, y] < weighed_erode_amount):
+                    #         delta_sediment = self.__heightmap[x, y]
                     #     else:
                     #         delta_sediment = weighed_erode_amount
-                    #     self.__heightmap[y, x] -= delta_sediment
+                    #     self.__heightmap[x, y] -= delta_sediment
                     #     sediment += delta_sediment
 
                 # Update droplet's speed and water content
@@ -330,10 +330,10 @@ class Erosion():
         # Calculate droplet's offset inside the cell (0,0) = at NW node, (1,1) = at SE node
         x, y = pos_x - coord_x, pos_y - coord_y
         # Calculate heights of the four nodes of the droplet's cell
-        height_nw = heightmap[coord_y, coord_x]
-        height_ne = heightmap[coord_y, coord_x + 1]
-        height_sw = heightmap[coord_y + 1, coord_x]
-        height_se = heightmap[coord_y + 1, coord_x + 1]
+        height_nw = heightmap[coord_x, coord_y]
+        height_ne = heightmap[coord_x + 1, coord_y]
+        height_sw = heightmap[coord_x, coord_y + 1]
+        height_se = heightmap[coord_x + 1, coord_y + 1]
         # Calculate droplet's direction of flow with bilinear interpolation of height difference along the edges
         h_and_g.gradient_x = (height_ne - height_nw) * \
             (1 - y) + (height_se - height_sw) * y
@@ -386,7 +386,8 @@ def erode(heightmap: Heightmap, **kwargs):
         **unused
     Other unused arguments, hack to use **large_hash when calling this method"""
 
-    er = Erosion(heightmap, **kwargs)
-    er.init_brush()
-    er.erode()
+    if kwargs["droplets"] > 0:
+        er = Erosion(heightmap, **kwargs)
+        er.init_brush()
+        er.erode()
     return heightmap
