@@ -47,7 +47,7 @@ def run(path_to_params: str):
 
     # Export heightmap
     path_to_rawmap_png = os.path.join(dir_outputs, "rawmap.png")
-    hm_npy = rawmap.heightmap.to_numpy()
+    hm_npy = rawmap.heightmap
     exporter_png.export(path_to_rawmap_png, rawmap.width,
                         rawmap.height, hm_npy)
 

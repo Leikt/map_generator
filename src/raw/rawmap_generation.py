@@ -55,12 +55,13 @@ def generate(parameters: hash) -> RawMap:
         width=width, height=height, seed=seed, **hmgen_parameters)
 
     # Erode the heightmap
-    erosion.erode(rawmap.heightmap, seed=seed, **erosion_parameters)
+    erosion.erode(rawmap.heightmap, seed=seed, width=width,
+                  height=height, **erosion_parameters)
 
     # Posterize heigtmap
 
     # Cliff mapping
 
-    # Water mapping 
+    # Water mapping
 
     return rawmap

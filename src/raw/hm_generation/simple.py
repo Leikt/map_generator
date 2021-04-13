@@ -3,14 +3,14 @@
 
 import logging
 import random
+import numpy
 
 import opensimplex
 from src.helpers.chrono import chrono
-from src.raw.heightmap import Heightmap
 
 
 @chrono
-def generate(*, width: int, height: int, seed: int, octaves: int, persistence: float, lacunarity: float, initial_scale: float, **unused) -> Heightmap:
+def generate(*, width: int, height: int, seed: int, octaves: int, persistence: float, lacunarity: float, initial_scale: float, **unused) -> object:
     """Generate a simple heightmap using the given parameters
     Parameters
     ==========
@@ -32,40 +32,38 @@ def generate(*, width: int, height: int, seed: int, octaves: int, persistence: f
     Other unused arguments, hack to use **large_hash when calling this method
     Returns
     =======
-        HeightMap
+        numpy array
     The result of the generation"""
-    
+
     # Initialize working variables
-    heightmap = Heightmap(width, height)
+    heightmap = numpy.zeros((width, height), numpy.float64)
     prng = random.Random(seed)
-    simplex = opensimplex.OpenSimplex(seed)
-    offsets = [None] * octaves
-    for i in range(octaves):
-        offsets[i] = (prng.randint(-1000, 1000), prng.randint(-1000, 1000))
+    get_noise = opensimplex.OpenSimplex(seed).noise2d
+    offsets = list(map(lambda o: (prng.randint(-1000, 1000),
+                   prng.randint(-1000, 1000)), [None] * octaves))
     scale_clamp = float(min(width, height))
 
     # Generating each value
-    for x, y in heightmap.coordinates:
-        value = 0.0
-        scale = initial_scale
-        weight = 1.0
-        for i in range(octaves):
-            pX = offsets[i][0] + scale * x / scale_clamp
-            pY = offsets[i][0] + scale * y / scale_clamp
-            value += simplex.noise2d(pX, pY) * weight
-            # Each octave have less impact than the previous
-            weight *= persistence
-            scale *= lacunarity
-        # Store height
-        heightmap[x, y] = value
+    for x in range(width):
+        for y in range(height):
+            value = 0.0
+            scale = initial_scale
+            weight = 1.0
+            for ox, oy in offsets:
+                # Each octave have less impact than the previous
+                value = value + (get_noise(ox + scale * x / scale_clamp, oy + scale * y / scale_clamp) + 1) * weight
+                weight = weight * persistence
+                scale = scale * lacunarity
+            # Store height
+            heightmap[x, y] = value
 
     # Correcting data to put them between -1.0 and 1.0
-    minValue = heightmap.lowest
-    maxValue = heightmap.highest
-    if maxValue != minValue:
-        for x, y in heightmap.coordinates:
-            heightmap[x, y] = (heightmap[x, y] - minValue) / \
-                (maxValue - minValue)
+    lowest = numpy.amin(heightmap)
+    highest = numpy.amax(heightmap)
+    if lowest != highest:
+        delta = highest - lowest
+        heightmap = numpy.array(
+            list(map(lambda v: (v - lowest) / delta, heightmap)), numpy.float64)
 
     # Return the heightmap
     return heightmap
