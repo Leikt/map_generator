@@ -1,33 +1,40 @@
 {
     "seed": 1234567890,
-    "randomizeSeed": false,
+    "randomize_seed": false,
     "map": {
-        "width": 100,
-        "height": 100
+        "width": 300,
+        "height": 300
     },
-    "data": {
-        "path": "./outputs/{identifier}/"
-    },
-    "heightmapGeneration": {
-        "module": "simple",
-        "scale": 2,
-        "octaves": 7,
+    "outputs": "{directory}/outputs/{id}",
+    "inputs":{},
+    "heightmap_generation": {
+        "type": "island",
+        "initial_scale": 7,
+        "octaves": 5,
         "persistence": 0.5,
-        "lacunarity": 2
+        "lacunarity": 2,
+        "radius_coef": 1,
+        "center_radius_coef": 0.15,
+        "variation_initial_scale": 2,
+        "variation_amplitude_coef": 0.6,
+        "ease_power": 0.8
     },
-    "erosion": {},
+    "erosion": {
+        "droplets": 15000,
+        "brush_radius": 4,
+        "inertia": 0.03,
+        "sediment_capacity_factor": 7,
+        "sediment_min_capacity": 0.1,
+        "erode_speed": 0.3,
+        "deposit_speed": 0.3,
+        "evaporate_speed": 0.01,
+        "gravity": 3.0,
+        "droplet_lifetime": 30,
+        "initial_water_volume": 1,
+        "initial_speed": 1,
+        "sea_level": 0
+    },
     "posterization": {},
-    "cliffmapping":{},
-    "tilemapGenerator": {},
-    "debug": {
-        "enabled": true,
-        "loadEnabled": true,
-        "identifier": "",
-        "loadBase": true,
-        "loadErosion": true,
-        "loadPosterization": true,
-        "loadCliffs": true,
-        "loadWater": true,
-        "loadBiomes": true
-    }
+    "cliff_mapping": {},
+    "tilemap_generation": {}
 }

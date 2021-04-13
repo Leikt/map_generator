@@ -2,9 +2,13 @@
 # coding: utf-8
 
 import argparse
+import os
 
 import src.generation
+import src.raw
 
+import logging
+logging.basicConfig(level=logging.DEBUG)
 
 def parse_args():
     argparser = argparse.ArgumentParser()
@@ -19,8 +23,11 @@ def main():
     # Parse arguments
     args = parse_args()
     parameters_fname = args.parameters
+    dirname = os.path.dirname(__file__)
+    path_to_params = os.path.join(dirname, parameters_fname)
+
     # Run the generation with parameters
-    src.generation.run(parameters_fname)
+    src.generation.run(path_to_params)
 
 
 if __name__ == "__main__":
