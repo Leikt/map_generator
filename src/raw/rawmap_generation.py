@@ -27,17 +27,27 @@ def generate(parameters: hash) -> RawMap:
 
     # Retrieve parameters
     try:
-        mapParams = parameters["map"]
-        width = mapParams["width"]
-        height = mapParams["height"]
+        map_params = parameters["map"]
+        width = map_params["width"]
+        height = map_params["height"]
         seed = parameters["seed"]
         hmgen_parameters = parameters["heightmap_generation"]
         hmgen_module_name = hmgen_parameters["type"]
         erosion_parameters = parameters["erosion"]
-        del mapParams  # Useless variable
+        del map_params  # Useless variable
     except KeyError as e:
         logging.critical(
             "A required parameter is missing from the parameters : \n{err}".format(err=e))
+
+    # Load debug parameters
+    try:
+        debug_params = parameters["_debug"]
+        debug_enabled = debug_params["enabled"]
+        debug_step = debug_params["step"]
+        debug_gen_id = debug_params["gen_id"]
+        del debug_params
+    except:
+        debug_enabled = False
 
     # Retrieve the heightmap generation module
     try:
@@ -47,21 +57,50 @@ def generate(parameters: hash) -> RawMap:
         logging.critical("Impossible to load the heightmap generation module named : '{mod}'\n{err}".format(
             mod=hmgen_module_name, err=e))
 
+    # Initialize debug
+    if debug_enabled:
+        from src.raw.steps import RawGenerationSteps
+        if debug_gen_id is None:
+            path, exists = RawGenerationSteps.default_path(parameters["_gen_id"])
+        else:
+            path, exists = RawGenerationSteps.default_path(debug_gen_id)
+        gen_steps = RawGenerationSteps(path)
+        gen_steps.setup()
+        if not exists:
+            debug_step = -1
+    else:
+        debug_step = -1
+
     # Initialize rawmap
-    rawmap = RawMap(width, height)
+    rawmap = None
+    if debug_enabled:
+        rawmap = RawMap.from_array(gen_steps.get_step(debug_step))
+    if rawmap is None:
+        rawmap = RawMap(width, height)
+        debug_step = -1
 
     # Generate the heightmap
-    rawmap.heightmap = hmgen_module.generate(
-        width=width, height=height, seed=seed, **hmgen_parameters)
+    if debug_step < 1: # Raw noise generation
+        rawmap.heightmap = hmgen_module.generate(
+            width=width, height=height, seed=seed, **hmgen_parameters)
+        if debug_enabled:
+            gen_steps.add_step(rawmap.to_array())
 
     # Erode the heightmap
-    erosion.erode(rawmap.heightmap, seed=seed, width=width,
+    if debug_step < 2: # Erosion
+        erosion.erode(rawmap.heightmap, seed=seed, width=width,
                   height=height, **erosion_parameters)
+        if debug_enabled:
+            gen_steps.add_step(rawmap.to_array())
 
     # Posterize heigtmap
 
     # Cliff mapping
 
     # Water mapping
+
+    # Save debug bin
+    if debug_enabled:
+        gen_steps.save()
 
     return rawmap

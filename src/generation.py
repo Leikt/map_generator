@@ -34,16 +34,17 @@ def run(path_to_params: str):
     parameters["seed"] = random.randint(0, 2 ** 64 - 1) if parameters.get(
         "randomize_seed", False) else parameters["seed"]
 
+    # Exports
+    # Generate path to outputs
+    gen_id = str(round(time.time())) # Prendre le _debug/gen_id
+    dir_outputs = __gen_path_to_outputs(gen_id, parameters["outputs"])
+    parameters["_gen_id"] = gen_id
+
     # Generate the raw map
     rawmap = rawmap_generation.generate(parameters)
 
     # Generate the tilemap
     # TODO
-
-    # Exports
-    # Generate path to outputs
-    gen_id = str(round(time.time()))
-    dir_outputs = __gen_path_to_outputs(gen_id, parameters["outputs"])
 
     # Export heightmap
     path_to_rawmap_png = os.path.join(dir_outputs, "rawmap.png")
