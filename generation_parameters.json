@@ -2,7 +2,7 @@
         "_debug": {
             "enabled": true,
             "name": "debug",
-            "step": 2
+            "step": -1
         },
         "seed": 123456789,
         "randomize_seed": false,
@@ -39,7 +39,8 @@
             "initial_speed": 1,
             "sea_level": 0
         },
-        "posterization": {},
-        "cliff_mapping": {},
+        "cliff_mapping": {
+            "step_count":10
+        },
         "tilemap_generation": {}
     }

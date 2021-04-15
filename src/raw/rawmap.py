@@ -10,6 +10,7 @@ class RawMap:
         self.width = width
         self.height = height
         self.heightmap = numpy.zeros((width, height), numpy.float64)
+        self.level_curves = numpy.zeros((width, height), numpy.float64)
 
     @staticmethod
     def from_array(arr: list):

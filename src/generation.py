@@ -38,6 +38,7 @@ class Generation():
         # Generate Rawmap
         rawmap = RawMapGeneration(self._parameters, path, self._debug_enabled, self._debug_step).rawmap
         exporter_png.export(os.path.join(path, "heightmap.png"), rawmap.width, rawmap.height, rawmap.heightmap)
+        exporter_png.export(os.path.join(path, "level_curves.png"), rawmap.width, rawmap.height, rawmap.level_curves)
 
         # Generate Tilemap
 

@@ -6,8 +6,11 @@ import logging
 import os
 
 from src.raw.rawmap import RawMap
+from src.raw.level_curves import LevelCurves
 from src.raw.erosion import Erosion
 from src.generation_step_manager import GenerationStepManager
+import collections
+
 
 class RawMapGeneration():
     """Generate a RawMap object
@@ -33,12 +36,9 @@ class RawMapGeneration():
         erosion
     Another object with erosion parameters, specific to the erosion module"""
 
-    STEPS = {
-        'heightmap': 1,
-        'erosion': 2,
-        'cliffmapping': 3,
-        'watermapping': 4
-    }
+    STEPS = collections.namedtuple('Steps',\
+        ['heightmap', 'erosion', 'cliff_mapping', 'water_mapping'])\
+        (1, 2, 3, 4)
 
     def __init__(self, parameters: object, path_to_outputs: str, debug_enabled: bool, debug_step: int):
         # Setup attributes
@@ -47,9 +47,11 @@ class RawMapGeneration():
 
         # Init the step manager and the generated data
         path_to_steps = os.path.join(self._path_to_outputs, "rawmap_steps.bin")
-        self._step_manager = GenerationStepManager(debug_enabled, path_to_steps, debug_step, RawMap)
+        self._step_manager = GenerationStepManager(
+            debug_enabled, path_to_steps, debug_step, RawMap)
         self._step_manager.load()
-        self._step_manager.init_data(self._parameters.map.width, self._parameters.map.height)
+        self._step_manager.init_data(
+            self._parameters.map.width, self._parameters.map.height)
 
         # Generate
         self.generate()
@@ -72,6 +74,7 @@ class RawMapGeneration():
         self._erode()
 
         # Cliff mapping
+        self._cliff_mapping()
 
         # Water mapping
 
@@ -94,9 +97,10 @@ class RawMapGeneration():
                 mod=hmgen_module_name, err=e))
 
         # Actually generate the heightmap
-        @self._step_manager.make_step(self.STEPS['heightmap'])
+        @self._step_manager.make_step(self.STEPS.heightmap)
         def heightmap():
-            self.rawmap.heightmap = hmgen_module.generate(hmgen_parameters, self.rawmap.width, self.rawmap.height, seed)
+            self.rawmap.heightmap = hmgen_module.generate(
+                hmgen_parameters, self.rawmap.width, self.rawmap.height, seed)
             return self.rawmap
         heightmap()
 
@@ -108,14 +112,30 @@ class RawMapGeneration():
         except AttributeError as e:
             logging.critical(
                 "A required parameter is missing from the parameters : \n{err}".format(err=e))
-        
+
         # Erode the heightmap
-        @self._step_manager.make_step(self.STEPS['erosion'])
+        @self._step_manager.make_step(self.STEPS.erosion)
         def erode():
-            erosion = Erosion(erosion_parameters, self.rawmap.heightmap, self.rawmap.width, self.rawmap.height, seed)
+            erosion = Erosion(erosion_parameters, self.rawmap.heightmap,
+                              self.rawmap.width, self.rawmap.height, seed)
             erosion.init_brushes()
             erosion.erode()
             return self.rawmap
         erode()
 
-    
+    def _cliff_mapping(self):
+        # Retrieve cliff mapping parameters
+        try:
+            cliff_mapping_parameters = self._parameters.cliff_mapping
+        except AttributeError as e:
+            logging.critical(
+                "A required parameter is missing from the parameters : \n{err}".format(err=e))
+
+        # Create the cliff map
+        @self._step_manager.make_step(self.STEPS.cliff_mapping)
+        def cliff_map():
+            level_curves = LevelCurves(cliff_mapping_parameters, self.rawmap.heightmap, self.rawmap.width, self.rawmap.height)
+            level_curves.create_level_curves()
+            self.rawmap.level_curves = level_curves.result
+            return self.rawmap
+        cliff_map()
