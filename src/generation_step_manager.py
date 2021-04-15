@@ -3,11 +3,12 @@
 
 import os
 import pickle
+import warnings
 
 
 class GenerationStepManager():
     """Class that manage the loading and saving of the different generation steps. It's used to skip long process.
-    
+
     Parameters
     ==========
         enabled: bool
@@ -27,7 +28,10 @@ class GenerationStepManager():
         self._step = step
         self._steps = {}
         self._loaded = False
-        # TODO raise NoMethodError if data_type doesn't have to_array() and from_array methods
+        # Check if the given type has the wanted interface
+        if not (hasattr(data_type, 'to_array') and hasattr(data_type, 'from_array')):
+            raise NotImplementedError(
+                "Data type '{dt}' must implement the method to_array() and the static method from_array(a)".format(dt=str(data_type)))
 
     @property
     def path(self) -> str:
@@ -38,7 +42,7 @@ class GenerationStepManager():
         The path to the file"""
 
         return self._path
-    
+
     @property
     def data(self):
         """Access the data property"""
@@ -54,9 +58,15 @@ class GenerationStepManager():
 
         if os.path.exists(self._path):
             # TODO raise warning if load fail
-            # Loading the steps
-            with open(self._path, 'rb') as file:
-                self._steps = pickle.load(file)
+            try:
+                # Loading the steps
+                with open(self._path, 'rb') as file:
+                    self._steps = pickle.load(file)
+            except Exception as e:
+                warnings.warn("Fail to load '{p}'. Initializing with the parameters.\n{err}".format(
+                    p=self._path, err=e))
+                self._steps = {}
+                self._step = -1
         else:
             # Init empty generation steps
             self._steps = {}
@@ -66,9 +76,12 @@ class GenerationStepManager():
     def save(self):
         """Save the steps into steps.bin file"""
 
-        # Raise Warning if the save failed
-        with open(self._path, 'wb') as file:
-            pickle.dump(self._steps, file)
+        try:
+            with open(self._path, 'wb') as file:
+                pickle.dump(self._steps, file)
+        except Exception as e:
+            warnings.warn("Fail to save steps in '{p}': {err}".format(
+                p=self._path, err=e))
 
     def init_data(self, *args, **kwargs):
         """Initialize the data or retrieve it from the bin file
@@ -108,7 +121,11 @@ class GenerationStepManager():
         Returns
         =======
             data_type
-        The object of data type or what the function return."""
+        The object of data type or what the function return.
+        Raises
+        ======
+            TypeError
+        If the decorated function return a different type than the data type."""
 
         def _decorator(func):
             if self._enabled:
@@ -117,7 +134,9 @@ class GenerationStepManager():
                     # the current step
                     if step > self._step:
                         result = func(*args, **kwargs)
-                        # TODO Raise TypeError if result isn't the same type as data_type
+                        if type(result) != self._data_type:
+                            raise TypeError("The function return the wrong type of data. Expected: {dt}, Actual: {tt}".format(
+                                dt=self._data_type, tt=type(result)))
                         self._add_step(step, result)
                         return result
                 g.__name__ == func.__name__
@@ -135,5 +154,7 @@ class GenerationStepManager():
             data: object of data_type
         Data to associate to the step"""
 
-        # TODO raise warning if step already exists
+        if step in self._steps:
+            warnings.warn(
+                "Incoherence, the step {s} already exists. It will be erased." .format(s=step))
         self._steps[step] = data.to_array()
