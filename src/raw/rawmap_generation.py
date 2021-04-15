@@ -5,9 +5,11 @@ import importlib
 import logging
 import os
 
-from src.raw.rawmap import RawMap
-from src.raw.erosion import Erosion
 from src.generation_step_manager import GenerationStepManager
+from src.helpers.chrono import chrono
+from src.raw.erosion import Erosion
+from src.raw.rawmap import RawMap
+
 
 class RawMapGeneration():
     """Generate a RawMap object
@@ -47,9 +49,11 @@ class RawMapGeneration():
 
         # Init the step manager and the generated data
         path_to_steps = os.path.join(self._path_to_outputs, "rawmap_steps.bin")
-        self._step_manager = GenerationStepManager(debug_enabled, path_to_steps, debug_step, RawMap)
+        self._step_manager = GenerationStepManager(
+            debug_enabled, path_to_steps, debug_step, RawMap)
         self._step_manager.load()
-        self._step_manager.init_data(self._parameters.map.width, self._parameters.map.height)
+        self._step_manager.init_data(
+            self._parameters.map.width, self._parameters.map.height)
 
         # Generate
         self.generate()
@@ -62,6 +66,7 @@ class RawMapGeneration():
         """Access the rawmap property"""
         return self._step_manager.data
 
+    @chrono
     def generate(self):
         """Generate the raw map"""
 
@@ -96,7 +101,8 @@ class RawMapGeneration():
         # Actually generate the heightmap
         @self._step_manager.make_step(self.STEPS['heightmap'])
         def heightmap():
-            self.rawmap.heightmap = hmgen_module.generate(hmgen_parameters, self.rawmap.width, self.rawmap.height, seed)
+            self.rawmap.heightmap = hmgen_module.generate(
+                hmgen_parameters, self.rawmap.width, self.rawmap.height, seed)
             return self.rawmap
         heightmap()
 
@@ -108,14 +114,13 @@ class RawMapGeneration():
         except AttributeError as e:
             logging.critical(
                 "A required parameter is missing from the parameters : \n{err}".format(err=e))
-        
+
         # Erode the heightmap
         @self._step_manager.make_step(self.STEPS['erosion'])
         def erode():
-            erosion = Erosion(erosion_parameters, self.rawmap.heightmap, self.rawmap.width, self.rawmap.height, seed)
+            erosion = Erosion(erosion_parameters, self.rawmap.heightmap,
+                              self.rawmap.width, self.rawmap.height, seed)
             erosion.init_brushes()
             erosion.erode()
             return self.rawmap
         erode()
-
-    

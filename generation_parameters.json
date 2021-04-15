@@ -2,7 +2,7 @@
         "_debug": {
             "enabled": true,
             "name": "debug",
-            "step": 2
+            "step": -1
         },
         "seed": 123456789,
         "randomize_seed": false,
