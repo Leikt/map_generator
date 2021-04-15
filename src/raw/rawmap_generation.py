@@ -1,15 +1,16 @@
 #! /usr/bin/env python3
 # coding: utf-8
 
+import collections
 import importlib
 import logging
 import os
 
-from src.raw.rawmap import RawMap
-from src.raw.level_curves import LevelCurves
-from src.raw.erosion import Erosion
 from src.generation_step_manager import GenerationStepManager
-import collections
+from src.helpers.chrono import chrono
+from src.raw.erosion import Erosion
+from src.raw.level_curves import LevelCurves
+from src.raw.rawmap import RawMap
 
 
 class RawMapGeneration():
@@ -64,6 +65,7 @@ class RawMapGeneration():
         """Access the rawmap property"""
         return self._step_manager.data
 
+    @chrono
     def generate(self):
         """Generate the raw map"""
 

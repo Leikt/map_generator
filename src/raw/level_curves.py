@@ -4,6 +4,9 @@
 import numpy
 import logging
 
+from src.helpers.chrono import chrono
+
+
 class LevelCurves():
     def __init__(self, parameters: object, heightmap: object, width: int, height: int):
         self._parameters = parameters
@@ -16,6 +19,7 @@ class LevelCurves():
         """Access the level curves"""
         return self._result
 
+    @chrono
     def create_level_curves(self):
         # Retrieve paramters
         try:
