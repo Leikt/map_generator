@@ -3,7 +3,7 @@
 
 import os
 import pickle
-import warnings
+import logging
 
 
 class GenerationStepManager():
@@ -63,7 +63,7 @@ class GenerationStepManager():
                 with open(self._path, 'rb') as file:
                     self._steps = pickle.load(file)
             except Exception as e:
-                warnings.warn("Fail to load '{p}'. Initializing with the parameters.\n{err}".format(
+                logging.warning("Fail to load '{p}'. Initializing with the parameters.\n{err}".format(
                     p=self._path, err=e))
                 self._steps = {}
                 self._step = -1
@@ -84,8 +84,7 @@ class GenerationStepManager():
             with open(self._path, 'wb') as file:
                 pickle.dump(self._steps, file)
         except Exception as e:
-            warnings.warn("Fail to save steps in '{p}': {err}".format(
-                p=self._path, err=e))
+            logging.warning("Fail to save steps in '{p}': {err}".format(p=self._path, err=e))
 
     def init_data(self, *args, **kwargs):
         """Initialize the data or retrieve it from the bin file
@@ -163,6 +162,5 @@ class GenerationStepManager():
             return
 
         if step in self._steps:
-            warnings.warn(
-                "Incoherence, the step {s} already exists. It will be erased." .format(s=step))
+            logging.warning("Step {s} already exists, it will be replaced.".format(s=step))
         self._steps[step] = data.to_array()
