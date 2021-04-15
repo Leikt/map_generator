@@ -4,7 +4,7 @@
 import argparse
 import os
 
-import src.generation
+from src.generation import Generation
 import src.raw
 
 import logging
@@ -27,7 +27,7 @@ def main():
     path_to_params = os.path.join(dirname, parameters_fname)
 
     # Run the generation with parameters
-    src.generation.run(path_to_params)
+    Generation(path_to_params)
 
 
 if __name__ == "__main__":

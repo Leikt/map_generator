@@ -3,74 +3,84 @@
 
 import json
 import logging
-import random
 import os
+import random
 import time
+from types import SimpleNamespace
 
+from src.raw.rawmap import RawMap
 import src.exporters.png as exporter_png
-import src.raw.rawmap_generation as rawmap_generation
+from src.raw.rawmap_generation import RawMapGeneration
+from src.generation_step_manager import GenerationStepManager
 
-"""Manage the entire generation process"""
+class Generation():
+    SEED_RANGE = (0, 2 ** 32 - 1)
 
+    def __init__(self, parameters: object):
+        # Retrieve the parameters
+        self._parameters = self._load_parameters(parameters)
+        self._debug_enabled = hasattr(
+            self._parameters, '_debug') and self._parameters._debug.enabled
+        self._debug_step = self._parameters._debug.step if self._debug_enabled else -1
+        # Run the generation
+        self.run()
 
-def run(path_to_params: str):
-    """Process a full generation
-    Parameters
-    ==========
-        path_to_params: str
-    Absolute path to the parameters json file
-    Raises
-    ======
-        Exception
-    If there is a problem with the file"""
+    def run(self):
+        # Randomize the seed if required
+        if self._parameters.randomize_seed:
+            self.seed = random.randint(*self.SEED_RANGE)
 
-    # Retrieve parameters
-    parameters = __load_parameters(path_to_params)
-    if parameters is None:
-        raise Exception(
-            "No parameters found. Error with the file '{f}'".format(f=path_to_params))
+        # Init export folders
+        path = self._get_path()
+        if not os.path.exists(path):
+            os.mkdir(path)
 
-    # Randomize the main seed if asked
-    parameters["seed"] = random.randint(0, 2 ** 64 - 1) if parameters.get(
-        "randomize_seed", False) else parameters["seed"]
+        # Generate Rawmap
+        rawmap = RawMapGeneration(self._parameters, path, self._debug_enabled, self._debug_step).rawmap
+        exporter_png.export(os.path.join(path, "heightmap.png"), rawmap.width, rawmap.height, rawmap.heightmap)
 
-    # Exports
-    # Generate path to outputs
-    gen_id = str(round(time.time())) # Prendre le _debug/gen_id
-    dir_outputs = __gen_path_to_outputs(gen_id, parameters["outputs"])
-    parameters["_gen_id"] = gen_id
+        # Generate Tilemap
 
-    # Generate the raw map
-    rawmap = rawmap_generation.generate(parameters)
+        # Export
 
-    # Generate the tilemap
-    # TODO
+    def _get_path(self) -> str:
+        """Create the path to the export folder
+        Returns
+        =======
+            str
+        The path"""
 
-    # Export heightmap
-    path_to_rawmap_png = os.path.join(dir_outputs, "rawmap.png")
-    hm_npy = rawmap.heightmap
-    exporter_png.export(path_to_rawmap_png, rawmap.width,
-                        rawmap.height, hm_npy)
+        # Main directory
+        dirname = os.path.dirname(os.path.dirname(__file__))
+        # The generation id and folder name : use debug if it's enabled else generate new unique one
+        self.gen_id = self._parameters._debug.name if self._debug_enabled else str(
+            round(time.time()))
+        # Return the formated path
+        return self._parameters.outputs.format(
+            directory=dirname, folder=self.gen_id)
 
+    def _load_parameters(self, path_to_params: str) -> object:
+        """Load the parameters from the file to a hash
+        Parameters
+        ==========
+            path_to_params: str
+        Path to the parameters file
+        Returns
+        =======
+            object or None
+        A object if the file could be loaded, None if not"""
 
-def __load_parameters(path_to_param: str) -> hash:
-    try:
-        with open(path_to_param) as file:
-            return json.load(file)
-    except FileNotFoundError as e:
-        logging.critical("Can't find parameters file : {msg}".format(msg=e))
-    except json.JSONDecodeError as e:
-        logging.critical(
-            "Error while decoding parameters file : {msg}".format(msg=e))
-    except:
-        logging.critical("Something went wrong while loading parameters.")
-    # Code reached when the file couldn't be loaded
-    return None
-
-def __gen_path_to_outputs(gen_id: str, param_output: str):
-    dirname = os.path.dirname(os.path.dirname(__file__))
-    path_to_outputs = param_output.format(
-        directory=dirname, id=gen_id)
-    if not os.path.exists(path_to_outputs):
-        os.mkdir(path_to_outputs)
-    return path_to_outputs
+        try:
+            with open(path_to_params) as file:
+                return json.load(file, object_hook=lambda d: SimpleNamespace(**d))
+        except FileNotFoundError as e:
+            logging.critical(
+                "Can't find parameters file : {msg}".format(msg=e))
+        except json.JSONDecodeError as e:
+            logging.critical(
+                "Error while decoding parameters file : {msg}".format(msg=e))
+        except Exception as e:
+            logging.critical(
+                "Something went wrong while loading parameters:\n{msg}".format(msg=e))
+        # Code reached when the file couldn't be loaded
+        return None

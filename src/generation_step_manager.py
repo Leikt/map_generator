@@ -76,6 +76,10 @@ class GenerationStepManager():
     def save(self):
         """Save the steps into steps.bin file"""
 
+        # Execute this action only if the debug is enabled
+        if not self._enabled:
+            return
+
         try:
             with open(self._path, 'wb') as file:
                 pickle.dump(self._steps, file)
@@ -153,6 +157,10 @@ class GenerationStepManager():
         Step id
             data: object of data_type
         Data to associate to the step"""
+
+        # Execute this action only if the debug is enabled
+        if not self._enabled:
+            return
 
         if step in self._steps:
             warnings.warn(

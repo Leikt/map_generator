@@ -10,29 +10,34 @@ from src.helpers.chrono import chrono
 
 
 class Erosion():
-    def __init__(self, heightmap: object, *, width: int, height: int, seed: int, brush_radius: int,
-                 inertia: float, sediment_capacity_factor: float, sediment_min_capacity: float,
-                 erode_speed: float, deposit_speed: float, evaporate_speed: float, gravity: float,
-                 droplet_lifetime: float, droplets: int, initial_water_volume: float, initial_speed: float, sea_level: float,
-                 **unused):
-        self._heightmap = heightmap
-        self._width = width
-        self._height = height
-        self._prng = random.Random(seed)
-        self._droplets_amount = droplets
-        self._brush_radius = brush_radius
-        self._inertia = inertia
-        self._sediment_capacity_factor = sediment_capacity_factor
-        self._sediment_min_capacity = sediment_min_capacity
-        self._erode_speed = erode_speed
-        self._deposit_speed = deposit_speed
-        self._evaporate_speed = evaporate_speed
-        self._gravity = gravity
-        self._droplet_lifetime = droplet_lifetime
-        self._initial_water = initial_water_volume
-        self._initial_speed = initial_speed
-        self._sea_level = sea_level
-
+    # def __init__(self, heightmap: object, *, width: int, height: int, seed: int, brush_radius: int,
+    #              inertia: float, sediment_capacity_factor: float, sediment_min_capacity: float,
+    #              erode_speed: float, deposit_speed: float, evaporate_speed: float, gravity: float,
+    #              droplet_lifetime: float, droplets: int, initial_water_volume: float, initial_speed: float, sea_level: float,
+    #              **unused):
+    def __init__(self, parameters: object, heightmap: object, width: int, height: int, seed: int):
+        try:
+            self._heightmap = heightmap
+            self._width = width
+            self._height = height
+            self._prng = random.Random(seed)
+            self._droplets_amount = parameters.droplets
+            self._brush_radius = parameters.brush_radius
+            self._inertia = parameters.inertia
+            self._sediment_capacity_factor = parameters.sediment_capacity_factor
+            self._sediment_min_capacity = parameters.sediment_min_capacity
+            self._erode_speed = parameters.erode_speed
+            self._deposit_speed = parameters.deposit_speed
+            self._evaporate_speed = parameters.evaporate_speed
+            self._gravity = parameters.gravity
+            self._droplet_lifetime = parameters.droplet_lifetime
+            self._initial_water = parameters.initial_water_volume
+            self._initial_speed = parameters.initial_speed
+            self._sea_level = parameters.sea_level
+        except AttributeError as e:
+            logging.critical(
+                "A required parameter is missing from the parameters : \n{err}".format(err=e))
+        
     @chrono
     def init_brushes(self):
         """Initialize the erosion brushes. This long method is optimized to minimize the call to function"""
@@ -272,45 +277,3 @@ class Erosion():
         height = height_nw * (1 - x) * (1 - y) + height_ne * x * \
             (1 - y) + height_sw * (1 - x) * y + height_se * x * y
         return (height, gradient_x, gradient_y)
-
-
-@chrono
-def erode(heightmap: object, **kwargs):
-    """Drop a certain number or droplets on random places on the given heightmap and mock
-    the natural erosion.
-    Parameters
-    ==========
-        heightmap: Heightmap
-    The heightmap to erode, will be modified in the process
-        seed: int
-    The PRNG seed
-        droplets: int
-    The number of droplets to drop. Affect performance and details of the result.
-        radius: int
-    The erosion brush radius
-        inertia: float
-    At zero, water will instantly change direction to flow downhill. At 1, water will never change direction.
-        sediment_capacity_factor: float
-    Multiplier for how much sediment a droplet can carry
-        sediment_min_capacity: float
-    Used to prevent carry capacity getting too close to zero on flatter terrain
-        erode_speed: float
-    Affect the amount of matter eroded when the droplet move
-        deposit_speed: float
-    Affect the amount of deposit droped by the droplet when it moves
-        evaporate_speed: float
-    Quantity of water that disapear each iteration of droplet life step
-        gravity: float
-    Mock the gravity in speed calculation
-        initial_water_volume: float
-    Initial volume in a droplet
-        initial_speed: float
-    Initial speed of the droplet, make the process faster
-        **unused
-    Other unused arguments, hack to use **large_hash when calling this method"""
-
-    if kwargs["droplets"] > 0:
-        er = Erosion(heightmap, **kwargs)
-        er.init_brushes()
-        er.erode()
-    return heightmap

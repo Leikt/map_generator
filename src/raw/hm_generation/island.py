@@ -11,11 +11,7 @@ from src.helpers.chrono import chrono
 
 
 @chrono
-def generate(*, width: int, height: int, seed: int, octaves: int,
-             persistence: float, lacunarity: float, initial_scale: float,
-             radius_coef: float, center_radius_coef: float, variation_initial_scale: float,
-             variation_amplitude_coef: float, ease_power: float,
-             **unused) -> object:
+def generate(parameters, width: int, height: int, seed: int) -> object:
     """Generate a island heightmap using the given parameters
     Parameters
     ==========
@@ -49,6 +45,21 @@ def generate(*, width: int, height: int, seed: int, octaves: int,
     =======
         numpy 2d array
     The result of the generation"""
+
+    # Retrieve parameters
+    try:
+        octaves = parameters.octaves
+        persistence = parameters.persistence
+        lacunarity = parameters.lacunarity
+        initial_scale = parameters.initial_scale
+        radius_coef = parameters.radius_coef
+        center_radius_coef = parameters.center_radius_coef
+        variation_initial_scale = parameters.variation_initial_scale
+        variation_amplitude_coef = parameters.variation_amplitude_coef
+        ease_power = parameters.ease_power
+    except AttributeError as e:
+        logging.critical(
+            "A required parameter is missing from the parameters : \n{err}".format(err=e))
 
     # Initialize working variables
     heightmap = numpy.zeros((width, height), numpy.float32)

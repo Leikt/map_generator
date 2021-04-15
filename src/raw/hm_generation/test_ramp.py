@@ -9,7 +9,7 @@ from src.helpers.chrono import chrono
 
 
 @chrono
-def generate(*, width: int, height: int, **unused) -> object:
+def generate(parameters: object, width: int, height: int, seed: int) -> object:
     heightmap = np.zeros((width, height), np.float32)
     for x in range(width):
         for y in range(height):

@@ -10,7 +10,7 @@ from src.helpers.chrono import chrono
 
 
 @chrono
-def generate(*, width: int, height: int, seed: int, octaves: int, persistence: float, lacunarity: float, initial_scale: float, **unused) -> object:
+def generate(parameters, width: int, height: int, seed: int) -> object: #, octaves: int, persistence: float, lacunarity: float, initial_scale: float, **unused) -> object:
     """Generate a simple heightmap using the given parameters
     Parameters
     ==========
@@ -34,6 +34,16 @@ def generate(*, width: int, height: int, seed: int, octaves: int, persistence: f
     =======
         numpy array
     The result of the generation"""
+
+    # Retrieve parameters
+    try:
+        octaves = parameters.octaves
+        persistence = parameters.persistence
+        lacunarity = parameters.lacunarity
+        initial_scale = parameters.initial_scale
+    except AttributeError as e:
+        logging.critical(
+            "A required parameter is missing from the parameters : \n{err}".format(err=e))
 
     # Initialize working variables
     heightmap = numpy.zeros((width, height), numpy.float64)
