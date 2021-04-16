@@ -1,20 +1,61 @@
 #! /usr/bin/env python3
 # coding: utf-8
 
+import logging
 import math
 import random
-import numpy
-import logging
 
+import numpy
 from src.helpers.chrono import chrono
 
 
 class Erosion():
-    # def __init__(self, heightmap: object, *, width: int, height: int, seed: int, brush_radius: int,
-    #              inertia: float, sediment_capacity_factor: float, sediment_min_capacity: float,
-    #              erode_speed: float, deposit_speed: float, evaporate_speed: float, gravity: float,
-    #              droplet_lifetime: float, droplets: int, initial_water_volume: float, initial_speed: float, sea_level: float,
-    #              **unused):
+    """Class that process the erosion of a heightmap
+    Parameters
+    ==========
+        parameters: object
+    A SimpleNamespace object with attributes (sea Parameters.parameters)
+        heightmap: object
+    The 2d numpy array to erode
+        width: int
+    Width of the 2D array
+        height: int
+    Height of the 2D array
+        seed: int
+    Used to create the PRNG
+    Parameters.parameters
+    =====================
+        droplets: int
+    Amount of erosion iteration to make
+        brush_radius: float
+    Radius of droplet influence
+        interia: float
+    Inertia of the droplet, at 1, the droplet will never change direction, at 0 it will flow in the steepest
+        sediment_capacity_factor: float
+    Mult of the sediment erosion
+        sediment_min_capacity: float
+    Minimum amount of sediment, it avoid the water to flow backward
+        erode_speed: float
+    Factor of erosion
+        deposit_speed: float
+    Factor of deposition
+        evaporate_speed: float
+    Speed of water evaporation
+        gravity: float
+    Gravity use in speed calculation
+        droplet_lifetime: int
+    Maximum iteration for a droplet
+        water_volume: float
+    Initial volume in a droplet
+        initial_speed: float
+    Inital movement speed of a droplet
+        sea_level: float
+    When a droplet reach this height, it dies
+    Raises
+    ======
+        AttributeError
+    If a parameter is missing."""
+
     def __init__(self, parameters: object, heightmap: object, width: int, height: int, seed: int):
         try:
             self._heightmap = heightmap
@@ -119,7 +160,7 @@ class Erosion():
     def erode(self):
         """Simulate a large amount of water droplets progressivly eroding the heightmap."""
 
-        # Note: this method can't afford to call functions, this is why it's so long : optimization
+        # Note: this method can't afford to call functions, this is why it's soooo long : optimization
 
         # Initialize work variables
         heightmap = self._heightmap

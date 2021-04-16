@@ -1,15 +1,30 @@
 #! /usr/bin/env python3
 # coding: utf-8
 
-import numpy
 import logging
 
+import numpy
 from src.helpers.chrono import chrono
 
 
 class Cliffs():
+    """Class that process the stratums into a cliff map
+    Parameters
+    ==========
+        parameters: object
+    A SimpleNamespace object with attributes (sea Parameters.parameters)
+        stratums: object
+    Numpy 2D array that contains height data
+        width: int
+    Width of the map
+        height: int
+    Height of the map
+    Parameters.parameters
+    =====================
+        None for now"""
 
-    DIRS_OFFSETS = [(0,-1),(1,-1),(1,0),(1,1),(0,1),(-1,1),(-1,0),(-1,-1)]
+    DIRS_OFFSETS = [(0, -1), (1, -1), (1, 0), (1, 1),
+                    (0, 1), (-1, 1), (-1, 0), (-1, -1)]
 
     def __init__(self, parameters: object, stratums: object, width: int, height: int):
         self._parameters = parameters
@@ -24,6 +39,8 @@ class Cliffs():
 
     @chrono
     def calculate_cliffs(self):
+        """Process throug the stratums and calculate the cliff code"""
+
         self._cliffs = cliffs = numpy.zeros((self._width, self._height))
         if (numpy.amax(self._stratums) == numpy.amin(self._stratums)):
             return  # Flatland
@@ -50,7 +67,20 @@ class Cliffs():
         self._cliffs = cliffs
 
     @chrono
-    def to_rgb_cliff(self, cliffs, map_width, map_height):
+    def to_rgb_cliff(self, cliffs: object, map_width: int, map_height: int) -> object:
+        """Convert the given cliffs to a preview in RGB
+        Parameters
+        ==========
+            cliffs: object
+        Numpy 2D array that contains cliff data
+            map_width: int
+        Width of the map
+            map_height: int
+        Height of the map
+        Returns
+        =======
+            Numpy 3D array (width, height, 3) ready to be rendered"""
+
         rgb_cliff = numpy.zeros((map_width, map_height, 3), numpy.uint8)
         mid = int(255 / 2)
         north_mask = 0b1000_0000

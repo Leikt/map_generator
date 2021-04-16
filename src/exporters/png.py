@@ -48,7 +48,7 @@ def exportRaw(out: str, data: list, rotate: bool = True):
     Path to the out file
         data: list
     2d array of [R,G,B] elements"""
-    
+
     # By default, the imagme will be renderer 90° right
     if rotate:
         width = len(data)

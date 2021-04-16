@@ -1,9 +1,9 @@
 #! /usr/bin/env python3
 # coding: utf-8
 
+import logging
 import os
 import pickle
-import logging
 
 
 class GenerationStepManager():
@@ -57,7 +57,6 @@ class GenerationStepManager():
         """Load the steps.bin file"""
 
         if os.path.exists(self._path):
-            # TODO raise warning if load fail
             try:
                 # Loading the steps
                 with open(self._path, 'rb') as file:
@@ -84,7 +83,8 @@ class GenerationStepManager():
             with open(self._path, 'wb') as file:
                 pickle.dump(self._steps, file)
         except Exception as e:
-            logging.warning("Fail to save steps in '{p}': {err}".format(p=self._path, err=e))
+            logging.warning(
+                "Fail to save steps in '{p}': {err}".format(p=self._path, err=e))
 
     def init_data(self, *args, **kwargs):
         """Initialize the data or retrieve it from the bin file
@@ -162,5 +162,6 @@ class GenerationStepManager():
             return
 
         if step in self._steps:
-            logging.warning("Step {s} already exists, it will be replaced.".format(s=step))
+            logging.warning(
+                "Step {s} already exists, it will be replaced.".format(s=step))
         self._steps[step] = data.to_array()

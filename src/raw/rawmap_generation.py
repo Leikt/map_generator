@@ -8,10 +8,10 @@ import os
 
 from src.generation_step_manager import GenerationStepManager
 from src.helpers.chrono import chrono
-from src.raw.erosion import Erosion
-from src.raw.stratums import Stratums
 from src.raw.cliffs import Cliffs
+from src.raw.erosion import Erosion
 from src.raw.rawmap import RawMap
+from src.raw.stratums import Stratums
 
 
 class RawMapGeneration():
@@ -36,7 +36,9 @@ class RawMapGeneration():
         heightmap_generation
     Another object with heightmap generation, specific to each generation types
         erosion
-    Another object with erosion parameters, specific to the erosion module"""
+    Another object with erosion parameters, specific to the erosion module
+        cliff_mapping
+    Another object with cliff mapping parmaters, specific to the cliff mapping module"""
 
     STEPS = collections.namedtuple('Steps',\
         ['heightmap', 'erosion', 'stratums', 'cliffs', 'water_mapping'])\

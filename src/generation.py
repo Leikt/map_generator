@@ -15,7 +15,10 @@ import src.exporters.png as exporter_png
 from src.raw.rawmap_generation import RawMapGeneration
 from src.generation_step_manager import GenerationStepManager
 
+
 class Generation():
+    """Class that manage entire map generation"""
+
     SEED_RANGE = (0, 2 ** 32 - 1)
 
     def __init__(self, parameters: object):
@@ -39,10 +42,14 @@ class Generation():
             os.mkdir(path)
 
         # Generate Rawmap
-        rawmap = RawMapGeneration(self._parameters, path, self._debug_enabled, self._debug_step).rawmap
-        exporter_png.export(os.path.join(path, "heightmap.png"), rawmap.width, rawmap.height, rawmap.heightmap)
-        exporter_png.export(os.path.join(path, "statums.png"), rawmap.width, rawmap.height, rawmap.stratums)
-        exporter_png.export(os.path.join(path, "cliffs.png"), rawmap.width, rawmap.height, rawmap.cliffs)
+        rawmap = RawMapGeneration(
+            self._parameters, path, self._debug_enabled, self._debug_step).rawmap
+        exporter_png.export(os.path.join(path, "heightmap.png"),
+                            rawmap.width, rawmap.height, rawmap.heightmap)
+        exporter_png.export(os.path.join(path, "statums.png"),
+                            rawmap.width, rawmap.height, rawmap.stratums)
+        exporter_png.export(os.path.join(path, "cliffs.png"),
+                            rawmap.width, rawmap.height, rawmap.cliffs)
 
         # Generate Tilemap
 

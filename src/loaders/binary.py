@@ -1,8 +1,8 @@
 #! /usr/bin/env python3
 # coding: utf-8
 
-import pickle
 import logging
+import pickle
 
 
 def export(path: str, data: bytes):
@@ -23,6 +23,7 @@ def export(path: str, data: bytes):
     with open(path, 'wb') as file:
         pickle.dump(data, file)
 
+
 def load(path: str):
     """Load the bin file and return its content
     Parameters
@@ -41,6 +42,6 @@ def load(path: str):
     ========
         EOFError
     If the file is empty, it will return None"""
-    
+
     with open(path, 'rb') as file:
         return pickle.load(file)
