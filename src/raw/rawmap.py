@@ -22,7 +22,7 @@ class RawMap:
         self.rgb_cliffs = numpy.zeros((width, height, 3), numpy.uint8)
 
     @staticmethod
-    def from_array(arr: list) -> RawMap:
+    def from_array(arr: list) -> object:
         """Create a RawMap from the given array
         Parameters
         ==========
