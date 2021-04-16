@@ -1,14 +1,14 @@
     {
         "_debug": {
             "enabled": true,
-            "name": "debug",
-            "step": -1
+            "name": "debug_water",
+            "step": 4
         },
         "seed": 2021,
         "randomize_seed": true,
         "map": {
-            "width": 200,
-            "height": 200
+            "width": 100,
+            "height": 100
         },
         "outputs": "{directory}/outputs/{folder}",
         "inputs": {},
@@ -41,6 +41,12 @@
         },
         "cliff_mapping": {
             "step_count":15
+        },
+        "water_mapping": {
+            "sources":5,
+            "max_lifetime":1000,
+            "range_x":[0.4, 0.6],
+            "range_y":[0.4, 0.6]
         },
         "tilemap_generation": {}
     }

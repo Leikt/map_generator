@@ -20,6 +20,7 @@ class RawMap:
         self.stratums = numpy.zeros((width, height), numpy.float64)
         self.cliffs = numpy.zeros((width, height), numpy.uint8)
         self.rgb_cliffs = numpy.zeros((width, height, 3), numpy.uint8)
+        self.waters = numpy.zeros((width, height, 3))
 
     @staticmethod
     def from_array(arr: list) -> object:
@@ -41,6 +42,7 @@ class RawMap:
         rm.stratums = arr[3]
         rm.cliffs = arr[4]
         rm.rgb_cliffs = arr[5]
+        rm.waters = arr[6]
         # Return the result
         return rm
 
@@ -50,4 +52,4 @@ class RawMap:
         =======
             list"""
 
-        return [self.width, self.height, self.heightmap, self.stratums, self.cliffs, self.rgb_cliffs]
+        return [self.width, self.height, self.heightmap, self.stratums, self.cliffs, self.rgb_cliffs, self.waters]
