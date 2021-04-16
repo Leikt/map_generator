@@ -8,6 +8,8 @@ import random
 import time
 from types import SimpleNamespace
 
+from src.helpers.chrono import chrono
+
 from src.raw.rawmap import RawMap
 import src.exporters.png as exporter_png
 from src.raw.rawmap_generation import RawMapGeneration
@@ -25,6 +27,7 @@ class Generation():
         # Run the generation
         self.run()
 
+    @chrono
     def run(self):
         # Randomize the seed if required
         if self._parameters.randomize_seed:
