@@ -9,7 +9,8 @@ import os
 from src.generation_step_manager import GenerationStepManager
 from src.helpers.chrono import chrono
 from src.raw.erosion import Erosion
-from src.raw.level_curves import LevelCurves
+from src.raw.stratums import Stratums
+from src.raw.cliffs import Cliffs
 from src.raw.rawmap import RawMap
 
 
@@ -38,8 +39,8 @@ class RawMapGeneration():
     Another object with erosion parameters, specific to the erosion module"""
 
     STEPS = collections.namedtuple('Steps',\
-        ['heightmap', 'erosion', 'cliff_mapping', 'water_mapping'])\
-        (1, 2, 3, 4)
+        ['heightmap', 'erosion', 'stratums', 'cliffs', 'water_mapping'])\
+        (1, 2, 3, 4, 5)
 
     def __init__(self, parameters: object, path_to_outputs: str, debug_enabled: bool, debug_step: int):
         # Setup attributes
@@ -133,11 +134,21 @@ class RawMapGeneration():
             logging.critical(
                 "A required parameter is missing from the parameters : \n{err}".format(err=e))
 
-        # Create the cliff map
-        @self._step_manager.make_step(self.STEPS.cliff_mapping)
-        def cliff_map():
-            level_curves = LevelCurves(cliff_mapping_parameters, self.rawmap.heightmap, self.rawmap.width, self.rawmap.height)
-            level_curves.create_level_curves()
-            self.rawmap.level_curves = level_curves.result
+        # Create the stratums
+        @self._step_manager.make_step(self.STEPS.stratums)
+        def create_stratums():
+            stratums = Stratums(cliff_mapping_parameters, self.rawmap.heightmap, self.rawmap.width, self.rawmap.height)
+            stratums.calculate_stratums()
+            self.rawmap.stratums = stratums.stratums
             return self.rawmap
-        cliff_map()
+        create_stratums()
+
+        # Create the cliffs
+        @self._step_manager.make_step(self.STEPS.cliffs)
+        def create_cliffs():
+            cliffs_gen = Cliffs(cliff_mapping_parameters, self.rawmap.stratums, self.rawmap.width, self.rawmap.height)
+            cliffs_gen.calculate_cliffs()
+            self.rawmap.cliffs = cliffs_gen.cliffs
+            self.rawmap.rgb_cliffs = cliffs_gen.to_rgb_cliff(cliffs_gen.cliffs, self.rawmap.width, self.rawmap.height)
+            return self.rawmap
+        create_cliffs()

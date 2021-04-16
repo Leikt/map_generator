@@ -4,8 +4,8 @@
             "name": "debug",
             "step": -1
         },
-        "seed": 123456789,
-        "randomize_seed": false,
+        "seed": 2021,
+        "randomize_seed": true,
         "map": {
             "width": 200,
             "height": 200
@@ -22,10 +22,10 @@
             "center_radius_coef": 0.15,
             "variation_initial_scale": 2,
             "variation_amplitude_coef": 0.6,
-            "ease_power": 0.8
+            "ease_power": 3.5
         },
         "erosion": {
-            "droplets": 15000,
+            "droplets": 8000,
             "brush_radius": 4,
             "inertia": 0.03,
             "sediment_capacity_factor": 7,
@@ -40,7 +40,7 @@
             "sea_level": 0
         },
         "cliff_mapping": {
-            "step_count":10
+            "step_count":15
         },
         "tilemap_generation": {}
     }
