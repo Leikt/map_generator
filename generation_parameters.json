@@ -2,18 +2,18 @@
         "_debug": {
             "enabled": true,
             "name": "debug_water",
-            "step": 4
+            "step": -1
         },
         "seed": 2021,
         "randomize_seed": true,
         "map": {
-            "width": 100,
-            "height": 100
+            "width": 200,
+            "height": 200
         },
         "outputs": "{directory}/outputs/{folder}",
         "inputs": {},
         "heightmap_generation": {
-            "type": "island",
+            "type": "test_ramp",
             "initial_scale": 7,
             "octaves": 5,
             "persistence": 0.5,
@@ -44,7 +44,7 @@
         },
         "water_mapping": {
             "sources":5,
-            "max_lifetime":1000,
+            "max_lifetime":100,
             "range_x":[0.4, 0.6],
             "range_y":[0.4, 0.6]
         },

@@ -82,7 +82,7 @@ class RawMapGeneration():
         self._cliff_mapping()
 
         # Water mapping
-        self._water_mapping()
+        self._water_mapping() # TODO Really needs improvments
 
     def _generate_heightmap(self):
         # Retrieve parameters
