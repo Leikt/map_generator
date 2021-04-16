@@ -10,6 +10,9 @@ class RawMap:
         self.width = width
         self.height = height
         self.heightmap = numpy.zeros((width, height), numpy.float64)
+        self.stratums = numpy.zeros((width, height), numpy.float64)
+        self.cliffs = numpy.zeros((width, height), numpy.uint8)
+        self.rgb_cliffs = numpy.zeros((width, height, 3), numpy.uint8)
 
     @staticmethod
     def from_array(arr: list):
@@ -19,8 +22,11 @@ class RawMap:
         # Setup the rawmap
         rm = RawMap(arr[0], arr[1])
         rm.heightmap = arr[2]
+        rm.stratums = arr[3]
+        rm.cliffs = arr[4]
+        rm.rgb_cliffs = arr[5]
         # Return the result
         return rm
 
     def to_array(self):
-        return [self.width, self.height, self.heightmap]
+        return [self.width, self.height, self.heightmap, self.stratums, self.cliffs, self.rgb_cliffs]

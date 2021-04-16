@@ -1,6 +1,7 @@
 #! /usr/bin/env python3
 # coding: utf-8
 
+import collections
 import importlib
 import logging
 import os
@@ -8,6 +9,8 @@ import os
 from src.generation_step_manager import GenerationStepManager
 from src.helpers.chrono import chrono
 from src.raw.erosion import Erosion
+from src.raw.stratums import Stratums
+from src.raw.cliffs import Cliffs
 from src.raw.rawmap import RawMap
 
 
@@ -35,12 +38,9 @@ class RawMapGeneration():
         erosion
     Another object with erosion parameters, specific to the erosion module"""
 
-    STEPS = {
-        'heightmap': 1,
-        'erosion': 2,
-        'cliffmapping': 3,
-        'watermapping': 4
-    }
+    STEPS = collections.namedtuple('Steps',\
+        ['heightmap', 'erosion', 'stratums', 'cliffs', 'water_mapping'])\
+        (1, 2, 3, 4, 5)
 
     def __init__(self, parameters: object, path_to_outputs: str, debug_enabled: bool, debug_step: int):
         # Setup attributes
@@ -77,6 +77,7 @@ class RawMapGeneration():
         self._erode()
 
         # Cliff mapping
+        self._cliff_mapping()
 
         # Water mapping
 
@@ -99,7 +100,7 @@ class RawMapGeneration():
                 mod=hmgen_module_name, err=e))
 
         # Actually generate the heightmap
-        @self._step_manager.make_step(self.STEPS['heightmap'])
+        @self._step_manager.make_step(self.STEPS.heightmap)
         def heightmap():
             self.rawmap.heightmap = hmgen_module.generate(
                 hmgen_parameters, self.rawmap.width, self.rawmap.height, seed)
@@ -116,7 +117,7 @@ class RawMapGeneration():
                 "A required parameter is missing from the parameters : \n{err}".format(err=e))
 
         # Erode the heightmap
-        @self._step_manager.make_step(self.STEPS['erosion'])
+        @self._step_manager.make_step(self.STEPS.erosion)
         def erode():
             erosion = Erosion(erosion_parameters, self.rawmap.heightmap,
                               self.rawmap.width, self.rawmap.height, seed)
@@ -124,3 +125,30 @@ class RawMapGeneration():
             erosion.erode()
             return self.rawmap
         erode()
+
+    def _cliff_mapping(self):
+        # Retrieve cliff mapping parameters
+        try:
+            cliff_mapping_parameters = self._parameters.cliff_mapping
+        except AttributeError as e:
+            logging.critical(
+                "A required parameter is missing from the parameters : \n{err}".format(err=e))
+
+        # Create the stratums
+        @self._step_manager.make_step(self.STEPS.stratums)
+        def create_stratums():
+            stratums = Stratums(cliff_mapping_parameters, self.rawmap.heightmap, self.rawmap.width, self.rawmap.height)
+            stratums.calculate_stratums()
+            self.rawmap.stratums = stratums.stratums
+            return self.rawmap
+        create_stratums()
+
+        # Create the cliffs
+        @self._step_manager.make_step(self.STEPS.cliffs)
+        def create_cliffs():
+            cliffs_gen = Cliffs(cliff_mapping_parameters, self.rawmap.stratums, self.rawmap.width, self.rawmap.height)
+            cliffs_gen.calculate_cliffs()
+            self.rawmap.cliffs = cliffs_gen.cliffs
+            self.rawmap.rgb_cliffs = cliffs_gen.to_rgb_cliff(cliffs_gen.cliffs, self.rawmap.width, self.rawmap.height)
+            return self.rawmap
+        create_cliffs()
