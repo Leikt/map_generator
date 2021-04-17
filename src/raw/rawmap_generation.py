@@ -152,7 +152,6 @@ class RawMapGeneration():
             cliffs_gen = Cliffs(cliff_mapping_parameters, self.rawmap.stratums, self.rawmap.width, self.rawmap.height)
             cliffs_gen.calculate_cliffs()
             self.rawmap.cliffs = cliffs_gen.cliffs
-            self.rawmap.rgb_cliffs = cliffs_gen.to_rgb_cliff(cliffs_gen.cliffs, self.rawmap.width, self.rawmap.height)
             return self.rawmap
         create_cliffs()
 

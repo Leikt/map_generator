@@ -1,10 +1,10 @@
     {
         "_debug": {
             "enabled": true,
-            "name": "debug_water",
-            "step": -1
+            "name": "debug",
+            "step": 4
         },
-        "seed": 2021,
+        "seed": 1993,
         "randomize_seed": true,
         "map": {
             "width": 200,
@@ -13,7 +13,7 @@
         "outputs": "{directory}/outputs/{folder}",
         "inputs": {},
         "heightmap_generation": {
-            "type": "test_ramp",
+            "type": "island",
             "initial_scale": 7,
             "octaves": 5,
             "persistence": 0.5,
@@ -25,7 +25,7 @@
             "ease_power": 3.5
         },
         "erosion": {
-            "droplets": 8000,
+            "droplets": 5000,
             "brush_radius": 4,
             "inertia": 0.03,
             "sediment_capacity_factor": 7,
@@ -43,10 +43,13 @@
             "step_count":15
         },
         "water_mapping": {
-            "sources":5,
-            "max_lifetime":100,
+            "sources":15,
+            "max_lifetime":1000,
             "range_x":[0.4, 0.6],
-            "range_y":[0.4, 0.6]
+            "range_y":[0.4, 0.6],
+            "river_depth":0.005,
+            "lowest_is_sea": true,
+            "exclusion_radius": 20
         },
         "tilemap_generation": {}
     }

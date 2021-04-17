@@ -10,6 +10,35 @@ from src.helpers.chrono import chrono
 
 
 class Waters():
+    """Class process the water map generation using the heightmap
+    Parameters
+    ==========
+        parameters: object
+    A SimpleNamespace object with attributes (sea Parameters.parameters)
+        rawmap: RawMap
+    The rawmap object
+        seed: int
+    PRNG seed
+    Parameters.parameters
+    =====================
+        sources: int
+    Amount of sources to generate
+        max_lifetime: int
+    Number of step the river head makes
+        range_x: tuple(float,float)
+    Range where the sources could appears. In coefficient of the width. Exemple : (0.1, 0.9)
+        range_y: tuple(float,float)
+    Range where the sources could appears. In coefficient of the height. Exemple : (0.1, 0.9)
+        lowest_is_sea: bool
+    If true, the simulation will end if the river reach the lowest value of the heightmap
+        river_depth: float
+    Depth of the river, the higher this value is, the more the river will be able to jump over obstacles but it will reduce the probability of lake
+        exclusion_radius: int
+    Number of pixel between sources, the generation will try to maintain this distance.
+    Raises
+    ======
+        AttributeError
+    If a parameter is missing."""
 
     DIRS_OFFSETS = [(0, -1), (1, 0), (0, 1), (-1, 0)]
 
@@ -21,6 +50,9 @@ class Waters():
             self._max_lifetime = parameters.max_lifetime
             self._spawn_range_x = parameters.range_x
             self._spawn_range_y = parameters.range_y
+            self._lowest_is_sea = parameters.lowest_is_sea
+            self._river_depth = parameters.river_depth
+            self._exclusion_radius = parameters.exclusion_radius
         except AttributeError as e:
             logging.critical(
                 "A required parameter is missing from the parameters : \n{err}".format(err=e))
@@ -32,6 +64,8 @@ class Waters():
 
     @chrono
     def generate(self):
+        """Generate the water map from the given parameters"""
+
         # Initialize and optimize
         water_map = numpy.zeros((self._rawmap.width, self._rawmap.height, 3))
         heightmap = self._rawmap.heightmap
@@ -42,80 +76,67 @@ class Waters():
         range_y = (self._spawn_range_y[0] * map_height,
                    self._spawn_range_y[1] * map_height)
         prng = self._prng
-        highest = numpy.amax(heightmap)
-        dirs = self.DIRS_OFFSETS
+        lowest = numpy.amin(heightmap)
+        lowest_is_sea = self._lowest_is_sea
+        river_depth = self._river_depth
+        exclusion_radius = self._exclusion_radius
+        sources = []
         # Generate each water source
         for _ in range(self._sources):
             # Spawn random resurgence in the map
-            pos_x = prng.randint(*range_x)
-            pos_y = prng.randint(*range_y)
-            water_map[pos_x, pos_y] = [1, 0, 0]  # TEMP mark the source
+            pos_x, pos_y = self._pick_source(sources, prng, range_x, range_y, exclusion_radius)
+            sources.append((pos_x, pos_y))
+            # Skip the sea sources
+            if (heightmap[pos_x, pos_y] == lowest and lowest_is_sea):
+                continue
+            water_map[pos_x, pos_y] = [river_depth, 0, river_depth]  # TEMP mark the source
             # Similate the river
             for _a_day_as_a_river_head in range(self._max_lifetime):
                 new_x, new_y = self._water_flow_direction(
-                    pos_x, pos_y, heightmap, map_width, map_height)
+                    pos_x, pos_y, heightmap, map_width, map_height, water_map)
+                # Stop simulating river if it has reached the sea
+                if lowest_is_sea and heightmap[new_x, new_y] == lowest:
+                    break
+                # If it has moved : place the river
                 if pos_x != new_x or pos_y != new_y:
-                    # Stop simulating river if it has reached the sea
-                    if heightmap[new_x, new_y] == 0:
-                        break
                     # Make the river head move
                     pos_x, pos_y = new_x, new_y
-                    water_map[pos_x, pos_y] = [0, 1, 0]
-                else:
-                    # Lake
-                    # Init
-                    spillway = None             # Exit of the lake
-                    spillway_height = highest   # Height of the exit
-                    opened = [(pos_x, pos_y)]   # Nodes to process
-                    closed = []  # Node processed
-                    counter = 0  # Anti infinite loop
-                    # Lake detection loop
-                    while len(opened) > 0 and counter < 500:
-                        counter += 1
-                        # Change the current node to the lowest opened point
-                        opened = sorted(
-                            opened, key=lambda x: heightmap[x[0], x[1]])
-                        current = opened.pop(0)
-                        # Close the point so it won't be processed again
-                        closed.append(current)
-                        current_x, current_y = current
-                        # Process the point
-                        for dx, dy in dirs:
-                            nx, ny = current_x + dx, current_y + dy
-                            # If new point is in the map and neither opened or closed
-                            if 0 <= nx < map_width and 0 <= ny < map_height and \
-                                    not (nx, ny) in opened and not (nx, ny) in closed:
-                                nh = heightmap[nx, ny]
-                                if nh - heightmap[current_x, current_y] < 0:
-                                    # Gradient < 0 tells it a spillway
-                                    if spillway_height > nh:
-                                        # Change the spillway to the lowest
-                                        spillway_height = nh
-                                        spillway = (nx, ny)
-                                        # Delete opened that are higher than the spillway
-                                        opened = list(filter(lambda x: heightmap[x[0], x[1]] <= spillway_height, opened))
-                                elif nh <= spillway_height:
-                                    # Could be the spillway so we open the node
-                                    opened.append((nx, ny))
-                    if counter >= 500:
-                        logging.warning("Infinite loop...")
-                    lake = list(filter(lambda x: heightmap[x[0], x[1]] <= spillway_height, closed))
-                    for x, y in lake:
-                        water_map[x, y] = [0, 0, 1]
-                    if spillway is None:
-                        break
-                    else:
-                        pos_x, pos_y = spillway
-
+                # Add the water to the water map
+                water_map[pos_x, pos_y, 2] += river_depth
+        # Store the result
         self._water_map = water_map
 
-    def _water_flow_direction(self, pos_x, pos_y, heightmap, map_width, map_height):
-        current = heightmap[pos_x, pos_y]
+    def _pick_source(self, sources: list, prng: random.Random, range_x: tuple, range_y: tuple, exclusion_radius: int) -> tuple:
+        # Optimsation
+        prng_randint = prng.randint
+        sqr_exclusion = exclusion_radius * exclusion_radius
+        # Generate coordinates
+        counter = 0
+        while counter < 100:
+            counter += 1
+            # Generate random coodinates
+            pos_x = prng_randint(*range_x)
+            pos_y = prng_randint(*range_y)
+            # Check if the source is far enough the other ones
+            valid = True
+            for x, y in sources:
+                sqr_dst = (x - pos_x) * (x - pos_x) + (y - pos_y) * (y - pos_y)
+                if sqr_dst < sqr_exclusion:
+                    valid = False
+                    break
+            # If valide, return it
+            if valid:
+                return pos_x, pos_y
+        return pos_x, pos_y
+
+
+    def _water_flow_direction(self, pos_x, pos_y, heightmap, map_width, map_height, water_map):
+        current = heightmap[pos_x, pos_y] + water_map[pos_x, pos_y, 2]
         max_gradient, new_x, new_y = 0, pos_x, pos_y
         for dx, dy in self.DIRS_OFFSETS:
             nx, ny = pos_x + dx, pos_y + dy
             if 0 <= nx < map_width and 0 <= ny < map_height:
-                gradient = heightmap[nx, ny] - current
+                gradient = heightmap[nx, ny] + water_map[nx, ny, 2] - current
                 if gradient < max_gradient:
                     max_gradient = gradient
                     new_x, new_y = nx, ny
