@@ -26,6 +26,7 @@ class Stratums():
 
     DIRS_OFFSETS = [(-1, -1), (-1, 0), (-1, 1), (0, -1),
                     (0, 1), (1, -1), (1, 0), (1, 1)]
+    DIRS_4_OFFSETS = [(-1, 0), (0, -1), (0, 1), (1, 0)]
 
     def __init__(self, parameters: object, heightmap: object, width: int, height: int):
         self._parameters = parameters
@@ -61,6 +62,8 @@ class Stratums():
         self._base_calculation(heightmap, stratums, step)
         # Correct the broken curves
         self._correct_broken_lines(stratums, step, step_count)
+        # Correct orphan pixels
+        self._correct_orphan_pixels(stratums, step)
         # Store result
         self._stratums = stratums
 
@@ -97,3 +100,25 @@ class Stratums():
                                 gradient = current - stratums[nx, ny]
                                 if gradient > step:
                                     stratums[nx, ny] = current - step
+
+    def _correct_orphan_pixels(self, stratums, step):
+        dirs_offsets = self.DIRS_4_OFFSETS
+        map_width = self._width
+        map_height = self._height
+        for x in range(map_width):
+            for y in range(map_height):
+                current = stratums[x, y]
+                orphan = True
+                for dx, dy in dirs_offsets:
+                    nx, ny = x + dx, y + dy
+                    if 0 <= nx < map_width and 0 <= ny < map_height:
+                        if stratums[nx, ny] == current:
+                            orphan = False
+                if orphan:
+                    value = 0
+                    for dx, dy in dirs_offsets:
+                        value += stratums[x + dx, y + dy]
+                    value /= 4
+                    value -= value % step
+                    stratums[x, y] = value
+                
