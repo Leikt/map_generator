@@ -26,6 +26,12 @@ class Cliffs():
     DIRS_OFFSETS = [(0, -1), (1, -1), (1, 0), (1, 1),
                     (0, 1), (-1, 1), (-1, 0), (-1, -1)]
 
+    NORTH_MASK = 0b1000_0000
+    SOUTH_MASK = 0b0000_1000
+    EAST_MASK = 0b0010_0000
+    WEST_MASK = 0b0000_0010
+    ALL_MASKS = [NORTH_MASK, SOUTH_MASK, EAST_MASK, WEST_MASK]
+
     def __init__(self, parameters: object, stratums: object, width: int, height: int):
         self._parameters = parameters
         self._stratums = stratums
@@ -61,8 +67,8 @@ class Cliffs():
                         gradient = stratums[nx, ny] - current_height
                         if gradient < 0:
                             current |= 1
-                if current == 0:
-                    current = 0x100
+                # if current == 0:
+                #     current = 0x100
                 cliffs[x, y] = current
         self._cliffs = cliffs
 
@@ -83,10 +89,10 @@ class Cliffs():
 
         rgb_cliff = numpy.zeros((map_width, map_height, 3), numpy.uint8)
         mid = int(255 / 2)
-        north_mask = 0b1000_0000
-        south_mask = 0b0000_1000
-        east_mask = 0b0010_0000
-        west_mask = 0b0000_0010
+        north_mask = self.NORTH_MASK
+        south_mask = self.SOUTH_MASK
+        east_mask = self.EAST_MASK
+        west_mask = self.WEST_MASK
         for x in range(map_width):
             for y in range(map_height):
                 current = int(cliffs[x, y])
