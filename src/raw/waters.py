@@ -80,6 +80,9 @@ class Waters():
         lowest_is_sea = self._lowest_is_sea
         river_depth = self._river_depth
         exclusion_radius = self._exclusion_radius
+        cliffs = self._rawmap.cliffs
+        stratums = self._rawmap.stratums
+        set_water = self._set_water
         sources = []
         # Generate each water source
         for _ in range(self._sources):
@@ -102,7 +105,7 @@ class Waters():
                     # Make the river head move
                     pos_x, pos_y = new_x, new_y
                 # Add the water to the water map
-                water_map[pos_x, pos_y, 2] += river_depth
+                set_water(water_map, cliffs, stratums, pos_x, pos_y, river_depth)
         # Store the result
         self._water_map = water_map
 
@@ -141,3 +144,8 @@ class Waters():
                     max_gradient = gradient
                     new_x, new_y = nx, ny
         return new_x, new_y
+
+    def _set_water(self, water_map, cliffs, stratums, pos_x, pos_y, river_depth):
+        water_map[pos_x, pos_y, 2] += river_depth
+        if cliffs[pos_x, pos_y] > 0:
+            water_map[pos_x, pos_y, 1] += river_depth
