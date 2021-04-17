@@ -2,9 +2,9 @@
         "_debug": {
             "enabled": true,
             "name": "debug",
-            "step": -1
+            "step": 4
         },
-        "seed": 2021,
+        "seed": 1993,
         "randomize_seed": true,
         "map": {
             "width": 200,
@@ -25,7 +25,7 @@
             "ease_power": 3.5
         },
         "erosion": {
-            "droplets": 8000,
+            "droplets": 5000,
             "brush_radius": 4,
             "inertia": 0.03,
             "sediment_capacity_factor": 7,
@@ -41,6 +41,15 @@
         },
         "cliff_mapping": {
             "step_count":15
+        },
+        "water_mapping": {
+            "sources":15,
+            "max_lifetime":1000,
+            "range_x":[0.4, 0.6],
+            "range_y":[0.4, 0.6],
+            "river_depth":0.005,
+            "lowest_is_sea": true,
+            "exclusion_radius": 20
         },
         "tilemap_generation": {}
     }

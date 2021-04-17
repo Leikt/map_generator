@@ -12,7 +12,7 @@ from src.raw.cliffs import Cliffs
 from src.raw.erosion import Erosion
 from src.raw.rawmap import RawMap
 from src.raw.stratums import Stratums
-
+from src.raw.waters import Waters
 
 class RawMapGeneration():
     """Generate a RawMap object
@@ -41,7 +41,7 @@ class RawMapGeneration():
     Another object with cliff mapping parmaters, specific to the cliff mapping module"""
 
     STEPS = collections.namedtuple('Steps',\
-        ['heightmap', 'erosion', 'stratums', 'cliffs', 'water_mapping'])\
+        ['heightmap', 'erosion', 'stratums', 'cliffs', 'waters'])\
         (1, 2, 3, 4, 5)
 
     def __init__(self, parameters: object, path_to_outputs: str, debug_enabled: bool, debug_step: int):
@@ -82,6 +82,7 @@ class RawMapGeneration():
         self._cliff_mapping()
 
         # Water mapping
+        self._water_mapping() # TODO Really needs improvments
 
     def _generate_heightmap(self):
         # Retrieve parameters
@@ -151,6 +152,23 @@ class RawMapGeneration():
             cliffs_gen = Cliffs(cliff_mapping_parameters, self.rawmap.stratums, self.rawmap.width, self.rawmap.height)
             cliffs_gen.calculate_cliffs()
             self.rawmap.cliffs = cliffs_gen.cliffs
-            self.rawmap.rgb_cliffs = cliffs_gen.to_rgb_cliff(cliffs_gen.cliffs, self.rawmap.width, self.rawmap.height)
             return self.rawmap
         create_cliffs()
+
+    def _water_mapping(self):
+        # Retrieve water mapping parameters
+        try:
+            seed = self._parameters.seed
+            water_mapping_parameters = self._parameters.water_mapping
+        except AttributeError as e:
+            logging.critical(
+                "A required parameter is missing from the parameters : \n{err}".format(err=e))
+
+        # Generate the water map
+        @self._step_manager.make_step(self.STEPS.waters)
+        def create_waters():
+            waters_gen = Waters(water_mapping_parameters, self.rawmap, seed)
+            waters_gen.generate()
+            self.rawmap.waters = waters_gen.water_map
+            return self.rawmap
+        create_waters()
