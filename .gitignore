@@ -11,3 +11,4 @@ src/raw/__pycache__/
 src/hm_generation/__pycache__/
 src/tilemap/__pycache__/
 tests/__pycache__/
+generation_parameters.json
