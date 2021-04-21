@@ -47,14 +47,14 @@ class Generation():
         rawmap = rawmap_gen.rawmap
         exporter_png.export(os.path.join(path, "heightmap.png"),
                             rawmap.width, rawmap.height, rawmap.heightmap)
-        exporter_png.export(os.path.join(path, "heightmap_raw.png"),
-                            rawmap.width, rawmap.height, rawmap_gen.raw_heightmap)
-        exporter_png.export(os.path.join(path, "statums.png"),
+        exporter_png.export(os.path.join(path, "stratums.png"),
                             rawmap.width, rawmap.height, rawmap.stratums)
         exporter_png.export(os.path.join(path, "cliffs.png"),
                             rawmap.width, rawmap.height, rawmap.cliffs)
-        exporter_png.export(os.path.join(path, "waters.png"),
-                            rawmap.width, rawmap.height, rawmap.watermap)
+        exporter_png.export(os.path.join(path, "rivers.png"),
+                            rawmap.width, rawmap.height, rawmap.rivermap)
+        exporter_png.export(os.path.join(path, "pools.png"),
+                            rawmap.width, rawmap.height, rawmap.poolmap)
 
         # Generate Tilemap
 

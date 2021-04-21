@@ -76,7 +76,6 @@ class RawMapGeneration():
 
         # Generate raw heightmap
         self._generate_heightmap()
-        self.raw_heightmap = numpy.copy(self.rawmap.heightmap)
 
         # Erode the heightmap
         self._erode()
@@ -172,6 +171,7 @@ class RawMapGeneration():
         def create_waters():
             waters_gen = Waters(water_mapping_parameters, self.rawmap, seed)
             waters_gen.generate()
-            self.rawmap.watermap = waters_gen.water_map
+            self.rawmap.rivermap = waters_gen.rivermap
+            self.rawmap.poolmap = waters_gen.poolmap
             return self.rawmap
         create_waters()

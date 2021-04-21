@@ -19,7 +19,8 @@ class RawMap:
         self.heightmap = numpy.zeros((width, height), numpy.float64)
         self.stratums = numpy.zeros((width, height), numpy.float64)
         self.cliffs = numpy.zeros((width, height), numpy.uint8)
-        self.watermap = numpy.zeros((width, height, 3))
+        self.rivermap = numpy.zeros((width, height), numpy.float64)
+        self.poolmap = numpy.zeros((width, height), numpy.float64)
 
     @staticmethod
     def from_array(arr: list) -> object:
@@ -40,7 +41,8 @@ class RawMap:
         rm.heightmap = arr[2]
         rm.stratums = arr[3]
         rm.cliffs = arr[4]
-        rm.watermap = arr[5]
+        rm.rivermap = arr[5]
+        rm.poolmap = arr[5]
         # Return the result
         return rm
 
@@ -50,7 +52,7 @@ class RawMap:
         =======
             list"""
 
-        return [self.width, self.height, self.heightmap, self.stratums, self.cliffs, self.watermap]
+        return [self.width, self.height, self.heightmap, self.stratums, self.cliffs, self.rivermap, self.poolmap]
 
     def clone(self) -> object:
         """Make a clone of the RawMap and all its arrays"""
@@ -59,5 +61,6 @@ class RawMap:
         rawmap.heightmap = numpy.copy(self.heightmap)
         rawmap.stratums = numpy.copy(self.stratums)
         rawmap.cliffs = numpy.copy(self.cliffs)
-        rawmap.watermap = numpy.copy(self.watermap)
+        rawmap.rivermap = numpy.copy(self.rivermap)
+        rawmap.poolmap = numpy.copy(self.poolmap)
         return rawmap

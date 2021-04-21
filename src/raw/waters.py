@@ -8,6 +8,7 @@ import numpy
 from src.raw.rawmap import RawMap
 from src.helpers.chrono import chrono
 from src.raw.cliffs import Cliffs
+import functools
 
 
 class Waters():
@@ -59,67 +60,61 @@ class Waters():
                 "A required parameter is missing from the parameters : \n{err}".format(err=e))
 
     @property
-    def water_map(self):
+    def rivermap(self):
         """Access the water_map property"""
-        return self._water_map
+        return self._rivermap
+
+    @property
+    def poolmap(self):
+        """Access the poolmap property"""
+        return self._poolmap
 
     @chrono
     def generate(self):
         """Generate the water map from the given parameters"""
 
         # Initialize and optimize
-        water_map = numpy.zeros((self._rawmap.width, self._rawmap.height, 3))
         heightmap = self._rawmap.heightmap
+        stratums = self._rawmap.stratums
+        cliffmap = self._rawmap.cliffs
         map_width = self._rawmap.width
         map_height = self._rawmap.height
+        rivermap = numpy.zeros((map_width, map_height)) # Map of the rivers
+        poolmap = numpy.zeros((map_width, map_height)) # Map of the pools
+        drains = numpy.full((map_width, map_height, 2), -1) # Map of the drains coordinates
         range_x = (self._spawn_range_x[0] * map_width,
                    self._spawn_range_x[1] * map_width)
         range_y = (self._spawn_range_y[0] * map_height,
                    self._spawn_range_y[1] * map_height)
         prng = self._prng
-        lowest = numpy.amin(heightmap)
-        lowest_is_sea = self._lowest_is_sea
+        lowest = numpy.amin(heightmap) - (0 if self._lowest_is_sea else 1)
         river_depth = self._river_depth
         exclusion_radius = self._exclusion_radius
-        cliffs = self._rawmap.cliffs
-        stratums = self._rawmap.stratums
-        set_water = self._set_water
         sources = []
+
+        # Init pool
+        for x in range(map_width):
+            for y in range(map_height):
+                if stratums[x, y] == lowest:
+                    poolmap[x, y] = 0.5
 
         # Generate each water source
         for _ in range(self._sources):
             # Spawn random resurgence in the map
             pos_x, pos_y = self._pick_source(
-                sources, prng, range_x, range_y, exclusion_radius, cliffs)
+                sources, prng, range_x, range_y, exclusion_radius, cliffmap)
             sources.append((pos_x, pos_y))
             # Skip the sea sources
-            if (heightmap[pos_x, pos_y] == lowest and lowest_is_sea):
+            if (heightmap[pos_x, pos_y] == lowest):
                 continue
-            water_map[pos_x, pos_y, 1] = 1  # TEMP mark the source
-            # Similate the river
-            for _a_day_as_a_river_head in range(self._max_lifetime):
-                new_x, new_y = self._water_flow_direction(
-                    pos_x, pos_y, heightmap, map_width, map_height, water_map, cliffs)
-                # Stop simulating river if it has reached the sea
-                if lowest_is_sea and heightmap[new_x, new_y] == lowest:
-                    break
-                # If it has moved : place the river
-                if pos_x != new_x or pos_y != new_y:
-                    # Make the river head move
-                    pos_x, pos_y = new_x, new_y
-                # Add the water to the water map
-                set_water(water_map, cliffs, stratums,
-                          pos_x, pos_y, river_depth)
+            rivermap[pos_x, pos_y] = 1  # TEMP mark the source
+            path_to_pool = self._find_river(pos_x, pos_y, map_width, map_height, heightmap, stratums, cliffmap, poolmap, drains, lowest)
+            for x, y in path_to_pool:
+                rivermap[x, y] += 0.5
 
-        # Potential waterfalls visualisation
-        for x in range(map_width):
-            for y in range(map_height):
-                if cliffs[x, y] in Cliffs.ALL_MASKS:
-                    water_map[x, y, 0] = 0.25
-                if water_map[x, y, 2] > 0:
-                    water_map[x, y, 2] = 1
         # Store the result
-        self._water_map = water_map
+        self._rivermap = rivermap
+        self._poolmap = poolmap
 
     def _pick_source(self, sources: list, prng: random.Random, range_x: tuple, range_y: tuple, exclusion_radius: int, cliffmap: object) -> tuple:
         # Optimsation
@@ -162,5 +157,67 @@ class Waters():
                         new_x, new_y = nx, ny
         return new_x, new_y
 
-    def _set_water(self, water_map, cliffs, stratums, pos_x, pos_y, river_depth):
-        water_map[pos_x, pos_y, 2] += river_depth
+    def _find_river(self, x, y, map_width, map_height, heightmap, stratums, cliffmap, poolmap, drains, lowest):
+        # Conditions
+        def pool_found(pos_x, pos_y):
+            return poolmap[pos_x, pos_y] > 0
+
+        def local_lowest_found(pos_x, pos_y):
+            for dx, dy in self.DIRS_OFFSETS:
+                nx, ny = pos_x + dx, pos_y + dy
+                if 0 <= nx < map_width and 0 <= ny < map_height:
+                    gradient = heightmap[nx, ny] - heightmap[pos_x, pos_y]
+                    if gradient < 0:
+                        return False
+            return True
+
+        def water_can_flow(pos_x, pos_y, nx, ny):
+            gradient_ok = heightmap[nx, ny] - heightmap[pos_x, pos_y] < 0
+            cliff_ok = cliffmap[pos_x, pos_y] == 0 or cliffmap[pos_x, pos_y] in Cliffs.ALL_MASKS
+            return gradient_ok and cliff_ok
+
+        # Init djikstra algorithm
+        weights = numpy.full((map_width, map_height), 2**32) # [opened, closed]
+        weights[x, y] = 0
+        opened = [(x, y, -1, -1)] # (x, y, prec_x, prec_y)
+        closed = []
+        found = None
+        # Main loop
+        while len(opened) > 0 and found is None:
+            # Select the node to process
+            x, y, px, py = current = min(opened, key=lambda o: o[2])
+            opened.remove(current)
+            closed.append(current)
+            w = weights[x, y]
+            # Inspect the neighbours
+            for dx, dy in self.DIRS_OFFSETS:
+                nx, ny = x + dx, y + dy
+                if 0 <= nx < map_width and 0 <= ny < map_height and weights[nx, ny] > w + 1:
+                    if pool_found(nx, ny):
+                        drain_x, drain_y = drains[nx, ny]
+                        if drain_x < 0 or drain_y < 0:
+                            # Sea is reached
+                            found = [nx, ny, x, y] # pool coords, predec coords
+                            print("SEA REACHED : {ll} ".format(ll=found))
+                        else:
+                            # Flow through the pool directly to the drain
+                            opened.append((drain_x, drain_y, x, y))
+                            weights[drain_x, drain_y] = w + 1
+                    elif local_lowest_found(nx, ny):
+                        found = [nx, ny, x, y]
+                        print("LOCAL LOWEST : {ll} ".format(ll=found))
+                    elif water_can_flow(x, y, nx, ny):
+                        opened.append((nx, ny, x, y))
+                        weights[nx, ny] = w + 1
+        # Processing the results
+        if found is None:
+            found = [x, y, px, py] # Last node processed
+        # Backtracking
+        path = [found[0:2]]
+        px, py = found[2:4]
+        w = weights[found[0], found[1]]
+        while w > 0:
+            x, y, px, py = tuple(filter(lambda n: n[0] == px and n[1] == py, closed))[0]
+            w = weights[x, y]
+            path.append((x, y))
+        return path
