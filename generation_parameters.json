@@ -2,9 +2,9 @@
         "_debug": {
             "enabled": true,
             "name": "debug",
-            "step": -1
+            "step": 3
         },
-        "seed": 1992,
+        "seed": 1993,
         "randomize_seed": true,
         "map": {
             "width": 200,
@@ -40,10 +40,10 @@
             "sea_level": 0
         },
         "cliff_mapping": {
-            "step_count":15
+            "step_count":10
         },
         "water_mapping": {
-            "sources":15,
+            "sources":10,
             "max_lifetime":1000,
             "range_x":[0.4, 0.6],
             "range_y":[0.4, 0.6],

@@ -7,6 +7,7 @@ import random
 import numpy
 from src.raw.rawmap import RawMap
 from src.helpers.chrono import chrono
+from src.raw.cliffs import Cliffs
 
 
 class Waters():
@@ -84,19 +85,21 @@ class Waters():
         stratums = self._rawmap.stratums
         set_water = self._set_water
         sources = []
+
         # Generate each water source
         for _ in range(self._sources):
             # Spawn random resurgence in the map
-            pos_x, pos_y = self._pick_source(sources, prng, range_x, range_y, exclusion_radius)
+            pos_x, pos_y = self._pick_source(
+                sources, prng, range_x, range_y, exclusion_radius, cliffs)
             sources.append((pos_x, pos_y))
             # Skip the sea sources
             if (heightmap[pos_x, pos_y] == lowest and lowest_is_sea):
                 continue
-            water_map[pos_x, pos_y] = [river_depth, 0, river_depth]  # TEMP mark the source
+            water_map[pos_x, pos_y, 1] = 1  # TEMP mark the source
             # Similate the river
             for _a_day_as_a_river_head in range(self._max_lifetime):
                 new_x, new_y = self._water_flow_direction(
-                    pos_x, pos_y, heightmap, map_width, map_height, water_map)
+                    pos_x, pos_y, heightmap, map_width, map_height, water_map, cliffs)
                 # Stop simulating river if it has reached the sea
                 if lowest_is_sea and heightmap[new_x, new_y] == lowest:
                     break
@@ -105,11 +108,20 @@ class Waters():
                     # Make the river head move
                     pos_x, pos_y = new_x, new_y
                 # Add the water to the water map
-                set_water(water_map, cliffs, stratums, pos_x, pos_y, river_depth)
+                set_water(water_map, cliffs, stratums,
+                          pos_x, pos_y, river_depth)
+
+        # Potential waterfalls visualisation
+        for x in range(map_width):
+            for y in range(map_height):
+                if cliffs[x, y] in Cliffs.ALL_MASKS:
+                    water_map[x, y, 0] = 0.25
+                if water_map[x, y, 2] > 0:
+                    water_map[x, y, 2] = 1
         # Store the result
         self._water_map = water_map
 
-    def _pick_source(self, sources: list, prng: random.Random, range_x: tuple, range_y: tuple, exclusion_radius: int) -> tuple:
+    def _pick_source(self, sources: list, prng: random.Random, range_x: tuple, range_y: tuple, exclusion_radius: int, cliffmap: object) -> tuple:
         # Optimsation
         prng_randint = prng.randint
         sqr_exclusion = exclusion_radius * exclusion_radius
@@ -120,6 +132,8 @@ class Waters():
             # Generate random coodinates
             pos_x = prng_randint(*range_x)
             pos_y = prng_randint(*range_y)
+            if cliffmap[pos_y, pos_y] > 0:
+                continue
             # Check if the source is far enough the other ones
             valid = True
             for x, y in sources:
@@ -132,20 +146,21 @@ class Waters():
                 return pos_x, pos_y
         return pos_x, pos_y
 
-
-    def _water_flow_direction(self, pos_x, pos_y, heightmap, map_width, map_height, water_map):
+    def _water_flow_direction(self, pos_x, pos_y, heightmap, map_width, map_height, water_map, cliffmap):
         current = heightmap[pos_x, pos_y] + water_map[pos_x, pos_y, 2]
         max_gradient, new_x, new_y = 0, pos_x, pos_y
-        for dx, dy in self.DIRS_OFFSETS:
+        for i in range(len(self.DIRS_OFFSETS)):
+            dx, dy = self.DIRS_OFFSETS[i]
+            cliff_mask = Cliffs.ALL_MASKS[i]
             nx, ny = pos_x + dx, pos_y + dy
             if 0 <= nx < map_width and 0 <= ny < map_height:
                 gradient = heightmap[nx, ny] + water_map[nx, ny, 2] - current
                 if gradient < max_gradient:
-                    max_gradient = gradient
-                    new_x, new_y = nx, ny
+                    if cliffmap[nx, ny] == 0 or \
+                            cliffmap[nx, ny] == cliff_mask:
+                        max_gradient = gradient
+                        new_x, new_y = nx, ny
         return new_x, new_y
 
     def _set_water(self, water_map, cliffs, stratums, pos_x, pos_y, river_depth):
         water_map[pos_x, pos_y, 2] += river_depth
-        if cliffs[pos_x, pos_y] > 0:
-            water_map[pos_x, pos_y, 1] += river_depth

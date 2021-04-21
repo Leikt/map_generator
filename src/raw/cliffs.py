@@ -26,11 +26,11 @@ class Cliffs():
     DIRS_OFFSETS = [(0, -1), (1, -1), (1, 0), (1, 1),
                     (0, 1), (-1, 1), (-1, 0), (-1, -1)]
 
-    NORTH_MASK = 0b1000_0000
-    SOUTH_MASK = 0b0000_1000
-    EAST_MASK = 0b0010_0000
-    WEST_MASK = 0b0000_0010
-    ALL_MASKS = [NORTH_MASK, SOUTH_MASK, EAST_MASK, WEST_MASK]
+    NORTH_MASK = 0b1100_0001
+    SOUTH_MASK = 0b0001_1100
+    EAST_MASK = 0b0111_0000
+    WEST_MASK = 0b0000_0111
+    ALL_MASKS = [NORTH_MASK, EAST_MASK, SOUTH_MASK, WEST_MASK]
 
     def __init__(self, parameters: object, stratums: object, width: int, height: int):
         self._parameters = parameters
@@ -71,38 +71,3 @@ class Cliffs():
                 #     current = 0x100
                 cliffs[x, y] = current
         self._cliffs = cliffs
-
-    @chrono
-    def to_rgb_cliff(self, cliffs: object, map_width: int, map_height: int) -> object:
-        """Convert the given cliffs to a preview in RGB
-        Parameters
-        ==========
-            cliffs: object
-        Numpy 2D array that contains cliff data
-            map_width: int
-        Width of the map
-            map_height: int
-        Height of the map
-        Returns
-        =======
-            Numpy 3D array (width, height, 3) ready to be rendered"""
-
-        rgb_cliff = numpy.zeros((map_width, map_height, 3), numpy.uint8)
-        mid = int(255 / 2)
-        north_mask = self.NORTH_MASK
-        south_mask = self.SOUTH_MASK
-        east_mask = self.EAST_MASK
-        west_mask = self.WEST_MASK
-        for x in range(map_width):
-            for y in range(map_height):
-                current = int(cliffs[x, y])
-                gradient_north = mid if (current & north_mask) != 0 else 0
-                gradient_south = mid if (current & south_mask) != 0 else 0
-                gradient_east = mid if (current & east_mask) != 0 else 0
-                gradient_west = mid if (current & west_mask) != 0 else 0
-                rgb_cliff[x, y] = [
-                    mid + gradient_east - gradient_west,
-                    mid + gradient_north - gradient_south,
-                    mid
-                ]
-        return rgb_cliff
