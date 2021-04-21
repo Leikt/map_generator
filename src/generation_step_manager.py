@@ -18,7 +18,7 @@ class GenerationStepManager():
         step: int
     Id of the step, must be greater or equal to zero
         data_type: type
-    Any type that has a to_array() method and a from_array(arr) static method"""
+    Any type that has a to_array() and clone() method and a from_array(arr) static method"""
 
     def __init__(self, enabled: bool, path: str, step: int, data_type: type):
         self._enabled = enabled
@@ -29,7 +29,7 @@ class GenerationStepManager():
         self._steps = {}
         self._loaded = False
         # Check if the given type has the wanted interface
-        if not (hasattr(data_type, 'to_array') and hasattr(data_type, 'from_array')):
+        if not (hasattr(data_type, 'to_array') and hasattr(data_type, 'from_array') and hasattr(data_type, 'clone')):
             raise NotImplementedError(
                 "Data type '{dt}' must implement the method to_array() and the static method from_array(a)".format(dt=str(data_type)))
 
@@ -79,6 +79,11 @@ class GenerationStepManager():
         if not self._enabled:
             return
 
+        # Delete existing file
+        if os.path.exists(self._path):
+            os.remove(self._path)
+
+        # Create the new file
         try:
             with open(self._path, 'wb') as file:
                 pickle.dump(self._steps, file)
@@ -98,7 +103,7 @@ class GenerationStepManager():
 
         self._data = None
         if self._enabled and self._step in self._steps:
-            self._data = self._data_type.from_array(self._steps[self._step])
+            self._data = self._data_type.from_array(self._steps[self._step]).clone()
         if self._data is None:
             self._data = self._data_type(*args, **kwargs)
             self._step = -1
@@ -164,4 +169,4 @@ class GenerationStepManager():
         if step in self._steps:
             logging.warning(
                 "Step {s} already exists, it will be replaced.".format(s=step))
-        self._steps[step] = data.to_array()
+        self._steps[step] = data.clone().to_array()

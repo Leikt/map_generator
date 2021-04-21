@@ -14,6 +14,8 @@ from src.raw.rawmap import RawMap
 from src.raw.stratums import Stratums
 from src.raw.waters import Waters
 
+import numpy
+
 class RawMapGeneration():
     """Generate a RawMap object
     Parameters
@@ -74,6 +76,7 @@ class RawMapGeneration():
 
         # Generate raw heightmap
         self._generate_heightmap()
+        self.raw_heightmap = numpy.copy(self.rawmap.heightmap)
 
         # Erode the heightmap
         self._erode()
@@ -169,6 +172,6 @@ class RawMapGeneration():
         def create_waters():
             waters_gen = Waters(water_mapping_parameters, self.rawmap, seed)
             waters_gen.generate()
-            self.rawmap.waters = waters_gen.water_map
+            self.rawmap.watermap = waters_gen.water_map
             return self.rawmap
         create_waters()

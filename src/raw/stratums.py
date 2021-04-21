@@ -117,7 +117,8 @@ class Stratums():
                 if orphan:
                     value = 0
                     for dx, dy in dirs_offsets:
-                        value += stratums[x + dx, y + dy]
+                        if 0 <= x + dx < map_width and 0 <= y + dy < map_height:
+                            value += stratums[x + dx, y + dy]
                     value /= 4
                     value -= value % step
                     stratums[x, y] = value

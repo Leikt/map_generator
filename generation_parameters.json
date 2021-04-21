@@ -2,9 +2,9 @@
         "_debug": {
             "enabled": true,
             "name": "debug",
-            "step": 4
+            "step": -1
         },
-        "seed": 1993,
+        "seed": 1992,
         "randomize_seed": true,
         "map": {
             "width": 200,
@@ -22,18 +22,18 @@
             "center_radius_coef": 0.15,
             "variation_initial_scale": 2,
             "variation_amplitude_coef": 0.6,
-            "ease_power": 3.5
+            "ease_power": 1
         },
         "erosion": {
-            "droplets": 5000,
-            "brush_radius": 4,
+            "droplets": 10000,
+            "brush_radius": 3,
             "inertia": 0.03,
-            "sediment_capacity_factor": 7,
+            "sediment_capacity_factor": 8,
             "sediment_min_capacity": 0.1,
             "erode_speed": 0.3,
             "deposit_speed": 0.3,
             "evaporate_speed": 0.01,
-            "gravity": 3.0,
+            "gravity": 9.81,
             "droplet_lifetime": 30,
             "initial_water_volume": 1,
             "initial_speed": 1,
