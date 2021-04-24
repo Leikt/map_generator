@@ -4,7 +4,7 @@
             "name": "debug",
             "step": 4
         },
-        "seed": 1993,
+        "seed": 123456789,
         "randomize_seed": true,
         "map": {
             "width": 200,
@@ -44,12 +44,13 @@
         },
         "water_mapping": {
             "sources":10,
-            "max_lifetime":1000,
+            "max_lifetime":100,
             "range_x":[0.4, 0.6],
             "range_y":[0.4, 0.6],
-            "river_depth":0.005,
+            "min_height":0,
+            "river_radius":0.5,
             "lowest_is_sea": true,
-            "exclusion_radius": 20
+            "exclusion_radius": 8
         },
         "tilemap_generation": {}
     }

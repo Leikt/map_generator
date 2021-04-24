@@ -55,6 +55,8 @@ class Generation():
                             rawmap.width, rawmap.height, rawmap.rivermap)
         exporter_png.export(os.path.join(path, "pools.png"),
                             rawmap.width, rawmap.height, rawmap.poolmap)
+        exporter_png.export(os.path.join(path, "waterfalls.png"),
+                            rawmap.width, rawmap.height, rawmap.waterfallmap)
 
         # Generate Tilemap
 
