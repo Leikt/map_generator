@@ -2,9 +2,9 @@
         "_debug": {
             "enabled": true,
             "name": "debug",
-            "step": -1
+            "step": 4
         },
-        "seed": 1993,
+        "seed": 1992,
         "randomize_seed": true,
         "map": {
             "width": 200,
@@ -47,13 +47,13 @@
             "river_lifetime": 100,
             "pooling":{
                 "layer_size":0.005,
-                "max_depth":0.1,
+                "max_depth":0.035,
                 "basin_trim":0
             },
             "sources":{
                 "amount":10,
                 "distance":10,
-                "power_range":[0.7, 1.3],
+                "power_range":[0.6, 1.2],
                 "x_range":[0.1, 0.9],
                 "y_range":[0.2, 0.8],
                 "height_range":[0.4, 1]

@@ -39,7 +39,7 @@ class Cliffs():
     }
 
     @staticmethod
-    def dir_vector(value: int) -> tuple:
+    def dir_vector(value: int) -> tuple[int, int]:
         """Convert the cliff value into a direction vector
         Parameters
         ==========
