@@ -173,5 +173,6 @@ class RawMapGeneration():
             waters_gen.generate()
             self.rawmap.rivermap = waters_gen.rivermap
             self.rawmap.poolmap = waters_gen.poolmap
+            self.rawmap.waterfallmap = waters_gen.waterfallmap
             return self.rawmap
         create_waters()

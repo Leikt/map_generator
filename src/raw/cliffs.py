@@ -30,7 +30,27 @@ class Cliffs():
     SOUTH_MASK = 0b0001_1100
     EAST_MASK = 0b0111_0000
     WEST_MASK = 0b0000_0111
-    ALL_MASKS = [NORTH_MASK, EAST_MASK, SOUTH_MASK, WEST_MASK]
+
+    CLIFF_TO_DIR_VECTOR = {
+        NORTH_MASK: (0, -1, 0),
+        EAST_MASK: (1, 0, 0),
+        SOUTH_MASK: (0, 1, 0),
+        WEST_MASK: (-1, 0, 0)
+    }
+
+    @staticmethod
+    def dir_vector(value: int) -> tuple:
+        """Convert the cliff value into a direction vector
+        Parameters
+        ==========
+            value: int
+        A cliff value
+        Returns
+        =======
+            tuple: [dx, dy, is_inner] where is_inner is 1 is the angle is a inner angle
+            None: if the cliff code doesn't exists"""
+        
+        return Cliffs.CLIFF_TO_DIR_VECTOR.get(value, None)
 
     def __init__(self, parameters: object, stratums: object, width: int, height: int):
         self._parameters = parameters
@@ -45,9 +65,9 @@ class Cliffs():
 
     @chrono
     def calculate_cliffs(self):
-        """Process throug the stratums and calculate the cliff code"""
+        """Process through the stratums and calculate the cliff code"""
 
-        self._cliffs = cliffs = numpy.zeros((self._width, self._height))
+        self._cliffs = cliffs = numpy.zeros((self._width, self._height), numpy.int64)
         if (numpy.amax(self._stratums) == numpy.amin(self._stratums)):
             return  # Flatland
         # Wrok variables
