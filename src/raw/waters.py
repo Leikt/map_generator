@@ -87,7 +87,7 @@ class Waters():
         # rivermap = self._draw_final_river(rivermap)
 
         # Clean the river and poolmap
-        rivermap, poolmap = self._clean_waters(rivermap, poolmap)
+        rivermap, poolmap, waterfallmap = self._clean_waters(rivermap, poolmap, waterfallmap)
 
         # Store the results
         self._rivermap = rivermap
@@ -456,10 +456,11 @@ class Waters():
         # Return the painted rivers
         return new_rivermap
 
-    def _clean_waters(self, rivermap: numpy.array, poolmap: numpy.array) -> list[numpy.array, numpy.array]:
+    def _clean_waters(self, rivermap: numpy.array, poolmap: numpy.array, waterfallmap: numpy.array) -> list[numpy.array, numpy.array, numpy.array]:
         # Retrieve work variables
         map_width, map_height = self._rawmap.width, self._rawmap.height
         stratums = self._rawmap.stratums
+        cliffmap = self._rawmap.cliffs
         lowest = numpy.amin(stratums) - (1 if self._sea_level < numpy.amin(self._rawmap.heightmap) else 0)
 
         # Main loop
@@ -475,4 +476,6 @@ class Waters():
                     poolmap[x, y] = 1
                 elif rivermap[x, y] > 0:
                     rivermap[x, y] = 1
-        return rivermap, poolmap
+                    if cliffmap[x, y] > 0:
+                        waterfallmap[x, y] = 1 #cliffmap[x, y]
+        return rivermap, poolmap, waterfallmap
