@@ -2,7 +2,7 @@
         "_debug": {
             "enabled": true,
             "name": "debug",
-            "step": -1
+            "step": 4
         },
         "seed": 1992,
         "randomize_seed": true,
@@ -40,16 +40,24 @@
             "sea_level": 0
         },
         "cliff_mapping": {
-            "step_count":15
+            "step_count":10
         },
         "water_mapping": {
-            "sources":15,
-            "max_lifetime":1000,
-            "range_x":[0.4, 0.6],
-            "range_y":[0.4, 0.6],
-            "river_depth":0.005,
-            "lowest_is_sea": true,
-            "exclusion_radius": 20
+            "sea_level": 0,
+            "river_lifetime": 100,
+            "pooling":{
+                "layer_size":0.005,
+                "max_depth":0.035,
+                "basin_trim":0
+            },
+            "sources":{
+                "amount":10,
+                "distance":10,
+                "power_range":[0.6, 1.2],
+                "x_range":[0.1, 0.9],
+                "y_range":[0.2, 0.8],
+                "height_range":[0.4, 1]
+            }
         },
         "tilemap_generation": {}
     }
