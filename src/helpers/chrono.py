@@ -7,6 +7,7 @@ import logging
 
 def chrono(func):
     """Notify the duration of the decorated function execution"""
+    
     def inner(*args, **kwargs):
         name = "".join([func.__module__, ".", func.__name__])
         start = datetime.datetime.now()
