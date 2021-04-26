@@ -14,14 +14,16 @@ class RawMap:
     Map height"""
 
     def __init__(self, width: int, height: int):
-        self.width = width
-        self.height = height
-        self.heightmap = numpy.zeros((width, height), numpy.float64)
-        self.stratums = numpy.zeros((width, height), numpy.float64)
-        self.cliffs = numpy.zeros((width, height), numpy.uint8)
-        self.rivermap = numpy.zeros((width, height), numpy.float64)
-        self.poolmap = numpy.zeros((width, height), numpy.float64)
-        self.waterfallmap = numpy.zeros((width, height), numpy.float64)
+        self.working_width = int(width / 2)
+        self.working_height = int(height / 2)
+        self.final_width = self.width = self.working_width * 2
+        self.final_height = self.height = self.working_height * 2
+        self.heightmap = numpy.zeros((1, 1), numpy.float64)
+        self.stratums = numpy.zeros((1, 1), numpy.float64)
+        self.cliffs = numpy.zeros((1, 1), numpy.uint8)
+        self.rivermap = numpy.zeros((1, 1), numpy.float64)
+        self.poolmap = numpy.zeros((1, 1), numpy.float64)
+        self.waterfallmap = numpy.zeros((1, 1), numpy.float64)
 
     @staticmethod
     def from_array(arr: list) -> object:
@@ -43,8 +45,8 @@ class RawMap:
         rm.stratums = arr[3]
         rm.cliffs = arr[4]
         rm.rivermap = arr[5]
-        rm.poolmap = arr[5]
-        rm.waterfallmap = arr[6]
+        rm.poolmap = arr[6]
+        rm.waterfallmap = arr[7]
         # Return the result
         return rm
 

@@ -25,12 +25,7 @@ class Waters():
         """Access the poolmap property"""
         return self._poolmap
 
-    @property
-    def waterfallmap(self):
-        """Access the waterfallmap property"""
-        return self._waterfallmap
-
-    def __init__(self, parameters: object, rawmap: RawMap, seed: int):
+    def __init__(self, parameters: object, rawmap: RawMap, map_width: int, map_height: int, seed: int):
         try:
             self._rawmap = rawmap
             self._prng = random.Random(seed)
@@ -51,9 +46,11 @@ class Waters():
             logging.critical(
                 "A required parameter is missing from the parameters : \n{err}".format(err=e))
         else:
+            # Store parameters
+            self._map_width, self._map_height = map_width, map_height
             # Initialize the parameters if none is missing
-            self._sources_x_range = [int(v * self._rawmap.width) for v in self._sources_x_range]
-            self._sources_y_range = [int(v * self._rawmap.height) for v in self._sources_y_range]
+            self._sources_x_range = [int(v * self._map_width) for v in self._sources_x_range]
+            self._sources_y_range = [int(v * self._map_height) for v in self._sources_y_range]
             lowest = numpy.amin(self._rawmap.heightmap)
             delta_height = numpy.amax(self._rawmap.heightmap) - lowest
             self._sources_height_range = [lowest + v * delta_height for v in self._sources_height_range]
@@ -63,12 +60,11 @@ class Waters():
     @chrono
     def generate(self):
         # Retrieve work variables
-        map_width, map_height = self._rawmap.width, self._rawmap.height
+        map_width, map_height = self._map_width, self._map_height
 
         # Initialize results variables
         rivermap = numpy.zeros((map_width, map_height))
         poolmap = numpy.zeros((map_width, map_height))
-        waterfallmap = numpy.zeros((map_width, map_height))
 
         # Initialize work variables
         sources = []  # Sources coordinates
@@ -87,16 +83,15 @@ class Waters():
         # rivermap = self._draw_final_river(rivermap)
 
         # Clean the river and poolmap
-        rivermap, poolmap, waterfallmap = self._clean_waters(rivermap, poolmap, waterfallmap)
+        rivermap, poolmap = self._clean_waters(rivermap, poolmap)
 
         # Store the results
         self._rivermap = rivermap
         self._poolmap = poolmap
-        self._waterfallmap = waterfallmap
 
     def _find_source(self, sources: list[tuple[int, int]]) -> list[tuple[int, int], float]:
         # Retrieve working variables
-        map_width, map_height = self._rawmap.width, self._rawmap.height
+        map_width, map_height = self._map_width, self._map_height
         heightmap = self._rawmap.heightmap
         cliffmap = self._rawmap.cliffs
         range_x = self._sources_x_range
@@ -178,7 +173,7 @@ class Waters():
 
     def _flood(self, x: int, y: int, poolmap: numpy.array, drainsmap: numpy.array) -> list[numpy.array, numpy.array, bool]:
         # > Retrieve working variables
-        map_width, map_height = self._rawmap.width, self._rawmap.height
+        map_width, map_height = self._map_width, self._map_height
         heightmap =self._rawmap.heightmap
         cliffmap = self._rawmap.cliffs
         layer_size = self._pooling_layer_size
@@ -339,7 +334,7 @@ class Waters():
             return found_target, target
 
         # Retrieve working variables
-        map_width, map_height = self._rawmap.width, self._rawmap.height
+        map_width, map_height = self._map_width, self._map_height
         dirs = self.DIR_4_OFFSETS
         heightmap = self._rawmap.heightmap
         cliffmap = self._rawmap.cliffs
@@ -404,7 +399,7 @@ class Waters():
     @chrono
     def _draw_final_river(self, rivermap: numpy.array) -> numpy.array:
         # Retrieve work variables
-        map_width, map_height = self._rawmap.width, self._rawmap.height
+        map_width, map_height = self._map_width, self._map_height
         dirs = self.DIR_4_OFFSETS
         cliffmap = self._rawmap.cliffs
 
@@ -456,9 +451,9 @@ class Waters():
         # Return the painted rivers
         return new_rivermap
 
-    def _clean_waters(self, rivermap: numpy.array, poolmap: numpy.array, waterfallmap: numpy.array) -> list[numpy.array, numpy.array, numpy.array]:
+    def _clean_waters(self, rivermap: numpy.array, poolmap: numpy.array) -> list[numpy.array, numpy.array, numpy.array]:
         # Retrieve work variables
-        map_width, map_height = self._rawmap.width, self._rawmap.height
+        map_width, map_height = self._map_width, self._map_height
         stratums = self._rawmap.stratums
         cliffmap = self._rawmap.cliffs
         lowest = numpy.amin(stratums) - (1 if self._sea_level < numpy.amin(self._rawmap.heightmap) else 0)
@@ -476,6 +471,4 @@ class Waters():
                     poolmap[x, y] = 1
                 elif rivermap[x, y] > 0:
                     rivermap[x, y] = 1
-                    if cliffmap[x, y] > 0:
-                        waterfallmap[x, y] = 1 #cliffmap[x, y]
-        return rivermap, poolmap, waterfallmap
+        return rivermap, poolmap

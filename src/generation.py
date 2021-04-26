@@ -14,6 +14,7 @@ from src.raw.rawmap import RawMap
 import src.exporters.png as exporter_png
 from src.raw.rawmap_generation import RawMapGeneration
 from src.generation_step_manager import GenerationStepManager
+from src.helpers.resize import resize_data
 
 
 class Generation():
@@ -46,17 +47,17 @@ class Generation():
             self._parameters, path, self._debug_enabled, self._debug_step)
         rawmap = rawmap_gen.rawmap
         exporter_png.export(os.path.join(path, "heightmap.png"),
-                            rawmap.width, rawmap.height, rawmap.heightmap)
+                            rawmap.working_width, rawmap.working_height, rawmap.heightmap)
         exporter_png.export(os.path.join(path, "stratums.png"),
-                            rawmap.width, rawmap.height, rawmap.stratums)
+                            rawmap.final_width, rawmap.final_height, rawmap.stratums)
         exporter_png.export(os.path.join(path, "cliffs.png"),
-                            rawmap.width, rawmap.height, rawmap.cliffs)
+                            rawmap.final_width, rawmap.final_height, rawmap.cliffs)
         exporter_png.export(os.path.join(path, "rivers.png"),
-                            rawmap.width, rawmap.height, rawmap.rivermap)
+                            rawmap.final_width, rawmap.final_height, rawmap.rivermap)
         exporter_png.export(os.path.join(path, "pools.png"),
-                            rawmap.width, rawmap.height, rawmap.poolmap)
+                            rawmap.final_width, rawmap.final_height, rawmap.poolmap)
         exporter_png.export(os.path.join(path, "waterfalls.png"),
-                            rawmap.width, rawmap.height, rawmap.waterfallmap)
+                            rawmap.final_width, rawmap.final_height, rawmap.waterfallmap)
 
         # Generate Tilemap
 

@@ -7,8 +7,8 @@
         "seed": 1993,
         "randomize_seed": true,
         "map": {
-            "width": 200,
-            "height": 200
+            "width": 400,
+            "height": 400
         },
         "outputs": "{directory}/outputs/{folder}",
         "inputs": {},
@@ -18,7 +18,7 @@
             "octaves": 5,
             "persistence": 0.5,
             "lacunarity": 2,
-            "radius_coef": 1,
+            "radius_coef": 1.3,
             "center_radius_coef": 0.15,
             "variation_initial_scale": 2,
             "variation_amplitude_coef": 0.6,
