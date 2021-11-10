@@ -1,31 +1,63 @@
-{
-    "seed": 1234567890,
-    "randomizeSeed": false,
-    "map": {
-        "width": 300,
-        "height": 300
-    },
-    "data": {
-        "path": "./outputs/{identifier}/"
-    },
-    "heightmapGenerator": {
-        "name": "Simple",
-        "scale": 2,
-        "octaves": 7,
-        "persistence": 0.5,
-        "lacunarity": 2
-    },
-    "tilemapGenerator": {},
-    "debug": {
-        "load": {
-            "enabled": false,
-            "identifier": "",
-            "base": true,
-            "erosion": true,
-            "posterization": true,
-            "cliffs": true,
-            "water": true,
-            "biomes": true
-        }
+    {
+        "_debug": {
+            "enabled": true,
+            "name": "debug",
+            "step": -1
+        },
+        "seed": 1993,
+        "randomize_seed": true,
+        "map": {
+            "width": 400,
+            "height": 400
+        },
+        "outputs": "{directory}/outputs/{folder}",
+        "inputs": {},
+        "heightmap_generation": {
+            "type": "island",
+            "initial_scale": 7,
+            "octaves": 5,
+            "persistence": 0.5,
+            "lacunarity": 2,
+            "radius_coef": 1.3,
+            "center_radius_coef": 0.15,
+            "variation_initial_scale": 2,
+            "variation_amplitude_coef": 0.6,
+            "ease_power": 1
+        },
+        "erosion": {
+            "droplets": 10000,
+            "brush_radius": 3,
+            "inertia": 0.03,
+            "sediment_capacity_factor": 8,
+            "sediment_min_capacity": 0.1,
+            "erode_speed": 0.3,
+            "deposit_speed": 0.3,
+            "evaporate_speed": 0.01,
+            "gravity": 9.81,
+            "droplet_lifetime": 30,
+            "initial_water_volume": 1,
+            "initial_speed": 1,
+            "sea_level": 0
+        },
+        "cliff_mapping": {
+            "step_count":10
+        },
+        "water_mapping": {
+            "sea_level": 0,
+            "river_lifetime": 100,
+            "pooling":{
+                "layer_size":0.005,
+                "max_depth":0.04,
+                "basin_trim":0
+            },
+            "sources":{
+                "amount":10,
+                "distance":10,
+                "power_range":[0.6, 1.2],
+                "x_range":[0.1, 0.9],
+                "y_range":[0.2, 0.8],
+                "height_range":[0.4, 1]
+            }
+        },
+        "tilemap_generation": {}
     }
-}
